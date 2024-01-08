@@ -8,21 +8,17 @@ The GUI is made with ImGui.
 
 NXMilk is coded by proconsule
 
-
-https://ffmpeg.org/
-https://github.com/ocornut/imgui
-https://github.com/projectM-visualizer/projectm
-
-
 Installation 
 ----
 Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
 Copy milk files in /switch/nxmp/presets/milk/
 Copy texture files in /switch/nxmp/presets/Textures/
 
-
-
-
+Library used in this project
+-----
+- FFMpeg https://ffmpeg.org/
+- ImGui https://github.com/ocornut/imgui
+- ProjectM https://github.com/projectM-visualizer/projectm
 
 
 
