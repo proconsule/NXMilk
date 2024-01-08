@@ -10,9 +10,13 @@ NXMilk is coded by proconsule
 
 Installation 
 ----
-Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
-Copy milk files in /switch/nxmp/presets/milk/
-Copy texture files in /switch/nxmp/presets/Textures/
+- Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
+- Copy milk files in /switch/nxmp/presets/milk/
+- Copy texture files in /switch/nxmp/presets/Textures/
+
+Presets
+----
+- Many milkdrop presets to use https://github.com/projectM-visualizer/presets-cream-of-the-crop
 
 Library used in this project
 -----
