@@ -24,6 +24,8 @@ public:
 	void NextVisPreset();
 	void PrevVisPreset();
 	
+	void ViewSpectrum();
+	
 private:
 	projectm_handle projectM{nullptr};
 	projectm_playlist_handle playlist{nullptr};

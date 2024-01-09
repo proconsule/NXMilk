@@ -22,6 +22,20 @@ std::string removeLastSlash(const std::string &string) {
 	return str;
 }
 
+bool SortNameAsc(const fsentry_struct &entryA, const fsentry_struct &entryB){
+	if ((S_ISDIR(entryA.st.st_mode)) && !(S_ISDIR(entryB.st.st_mode)))
+			return true;
+		else if (!(S_ISDIR(entryA.st.st_mode)) && (S_ISDIR(entryB.st.st_mode)))
+			return false;
+		else {
+			if (strcasecmp(entryA.filename.c_str(), entryB.filename.c_str()) < 0)
+				return true;
+					
+		}
+		
+		return false;
+}
+
 bool endsWith(const std::string &value, const std::string &ending, bool sensitive) {
 		if (ending.size() > value.size()) return false;
 		if (sensitive) {
@@ -80,7 +94,12 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 						
 						struct stat st{0};
 						if (stat(fpath.c_str(), &st) == 0) {
-							memcpy(&fsentry.st,&st,sizeof(struct stat));
+							//memcpy(&fsentry.st,&st,sizeof(struct stat));
+							fsentry.st.st_size =  st.st_size;
+							fsentry.st.st_mode = st.st_mode;
+							fsentry.st.st_ctime = timestamp.created;
+							fsentry.st.st_mtime = timestamp.modified;
+							fsentry.st.st_atime = timestamp.accessed;
 						}
 						
 						//filelist.push_back(fsentry);
@@ -152,7 +171,7 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 					}
 					fsFsClose(&sdmc);
 					closedir(dir);
-					
+					std::sort(filelist.begin(), filelist.end(), SortNameAsc);
 					
 					/*
 					

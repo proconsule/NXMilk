@@ -63,7 +63,6 @@ class CAudioPlayer{
 public:
 	CAudioPlayer(int _audiodriver,int visW = 1280,int visH = 720);
 	~CAudioPlayer();
-	static void CAudioPlayerCallback(void* userData, unsigned char* stream, int len);
 	bool LoadFile(std::string filename);
 	void Play();
 	void Pause();
@@ -77,13 +76,16 @@ public:
 	bool fileloaded = false;
 	
 	unsigned int getSampleRate();
+	unsigned int getBitRate();
 	std::string getFormat();
 	std::string getCodec();
+	std::string getFileName();
 	long getDuration();
 	long getPosition();
 	
 	void NextVisPreset();
 	void PrevVisPreset();
+	void ViewSpectrum();
 	
 private:
 	//SDL_AudioDeviceID auddev;
@@ -100,7 +102,7 @@ private:
     //AVCodec *vidCodec, *audCodec;
     //AVCodecParameters *vidpar, *audpar;
 	Thread t0;
-	
+	std::string loadedfilename;
 	
 	
 };

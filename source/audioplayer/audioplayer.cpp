@@ -69,8 +69,8 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH){
 	}
 #endif
 	if(_audiodriver == 1){
-		bool initedAudren = false;
-		bool initedDriver = false;
+		//bool initedAudren = false;
+		//bool initedDriver = false;
 		//nxmpaudioctx.projectMHandle = _projectMHandle;
 		static const AudioRendererConfig arConfig =
 		{
@@ -96,13 +96,13 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH){
 		
 			Result rc = audrenInitialize(&arConfig);
 		if (R_FAILED(rc)) {
-			printf("Audren", "audrenInitialize: %x", rc);
+			printf("audrenInitialize: %x", rc);
 			return;
 		}
 		
 		rc = audrvCreate(&m_driver, &arConfig, m_channel_count);
 		if (R_FAILED(rc)) {
-			printf("Audren", "audrvCreate: %x", rc);
+			printf("audrvCreate: %x", rc);
 			return;
 		}
 		
@@ -122,7 +122,7 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH){
 		
 		rc = audrenStartAudioRenderer();
 		if (R_FAILED(rc)) {
-			printf("Audren", "audrenStartAudioRenderer: %x", rc);
+			printf("audrenStartAudioRenderer: %x", rc);
 		}
 		
 		audrvVoiceInit(&m_driver, 0, m_channel_count, PcmFormat_Int16, m_sample_rate);
@@ -167,7 +167,7 @@ bool CAudioPlayer::LoadFile(std::string filename){
     }
 	bool foundAudio = false;
 	bool foundVideo = false;
-	for (int i = 0; i < nxmpaudioctx.pFormatCtx->nb_streams; i++) {
+	for (unsigned int i = 0; i < nxmpaudioctx.pFormatCtx->nb_streams; i++) {
         AVCodecParameters *localparam = nxmpaudioctx.pFormatCtx->streams[i]->codecpar;
         AVCodec *localcodec = avcodec_find_decoder(localparam->codec_id);
         if (localparam->codec_type == AVMEDIA_TYPE_AUDIO && !foundAudio) {
@@ -229,6 +229,7 @@ bool CAudioPlayer::LoadFile(std::string filename){
 	nxmpaudioctx.duration = (1000000 * ( nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->duration * ((float) nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->time_base.num / nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->time_base.den)));
 	
 	fileloaded = true;
+	loadedfilename = filename.substr(filename.find_last_of("/")+1);
 	return true;
 }
 
@@ -263,6 +264,14 @@ void CAudioPlayer::PrevVisPreset(){
 	nxmpaudioctx.pmvis->PrevVisPreset();
 }
 
+void CAudioPlayer::ViewSpectrum(){
+	nxmpaudioctx.pmvis->ViewSpectrum();
+}
+
+unsigned int CAudioPlayer::getBitRate(){
+	return nxmpaudioctx.audCtx->bit_rate;
+}
+
 std::string CAudioPlayer::getCodec(){
 	return nxmpaudioctx.audCodec->long_name;
 }
@@ -282,6 +291,10 @@ long CAudioPlayer::getPosition(){
 
 bool CAudioPlayer::Running(){
 	return nxmpaudioctx.running;
+}
+
+std::string CAudioPlayer::getFileName(){
+	return loadedfilename;
 }
 
 void CAudioPlayer::Seek(int seconds) {
@@ -367,7 +380,7 @@ void SDLAudioThread(void *arg) {
 
             }
             av_packet_unref(packet);
-			while(ctx->pause){
+			while(ctx->pause && !ctx->exit){
 				svcSleepThread(1000);
 			}
         }
@@ -430,7 +443,7 @@ void AudrenAudioThread(void *arg) {
 			}
 		audrvUpdate(&m_driver);
 		av_packet_unref(packet);
-		while(ctx->pause){
+		while(ctx->pause && !ctx->exit){
 			svcSleepThread(1000);
 		}
 
@@ -498,16 +511,11 @@ void playaudio_sdl(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AV
 							   
 				
 				
-				while(SDL_GetQueuedAudioSize(auddev) > audioframe->linesize[0]*2){
+				while(SDL_GetQueuedAudioSize(auddev) > (unsigned int)audioframe->linesize[0]*2){
 					
 				}
 
 }
-
-static int msize[2] = {0,0};
-
-
-
 
 void playaudio_audren(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AVFrame *frame,
     CProjectMVis * pmvis)
@@ -560,18 +568,10 @@ void playaudio_audren(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt,
 				unsigned int samples =  audioframe->linesize[0]/sizeof(int16_t)/2;
 				pmvis->AddInt16(reinterpret_cast<int16_t*>(audioframe->data[0]),samples);
 				
-				//projectm_pcm_add_uint8(_projectMHandle,audioframe->data[0],audioframe->linesize[0]/sizeof(uint8_t)/2,PROJECTM_STEREO);
-				//float test[samples*2] = {0};
-				//int16_t * test2 = reinterpret_cast<int16_t*>(audioframe->data[0]);
-				//for(int i=0;i<samples*2;i++){
-				//	test[i] = (float)test2[i]/(1<<15);
-				//}
-				//projectm_pcm_add_float(_projectMHandle, test, samples,
-                //           PROJECTM_STEREO);
+				
 				write_audio(audioframe->data[0],audioframe->linesize[0]);
 	
 	
-	//usleep(16700);
 }
 
 ssize_t free_wavebuf_index() {
@@ -635,14 +635,7 @@ void write_audio(const void* buf, size_t size) {
 
     size_t queued_samples = m_total_queued_samples -
         audrvVoiceGetPlayedSampleCount(&m_driver, 0);
-
-/*
-    // If we have over 0.5 desync, drop samples
-    if (queued_samples > m_sample_rate / 2){
-		printf("Desync\n");
-		return;
-	}
-  */      
+ 
 
     size_t written = 0;
     while (written < size) {

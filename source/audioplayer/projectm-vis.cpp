@@ -1,5 +1,7 @@
 #include "projectm-vis.h"
 
+
+
 CProjectMVis::CProjectMVis(unsigned int _width,unsigned int _height,std::string _milkdir,std::string _texturedir){
 	width = _width;
 	height = _height;
@@ -62,4 +64,9 @@ void CProjectMVis::NextVisPreset(){
 
 void CProjectMVis::PrevVisPreset(){
 	projectm_playlist_play_previous(playlist, true);
+}
+
+void CProjectMVis::ViewSpectrum(){
+	projectm_load_preset_file(projectM,"romfs:/presets/milk/spectrum.milk",false);
+	
 }

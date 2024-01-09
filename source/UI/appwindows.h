@@ -8,9 +8,13 @@
 
 #include "fsbrowser.h"
 #include "audioplayer.h"
+#include "imgloader.h"
 
 extern CFSBrowser * fsbrowser;
 extern CAudioPlayer * audioplayer;
+extern CImgLoader *imgloader;
+
+extern std::vector<std::string> audioextendions;
 
 namespace Windows {
 	
@@ -42,8 +46,24 @@ inline void SetupWindow(void) {
 		ImGui::PopStyleColor();
     };
 	
+	inline void SetupPlayerWindow(void){
+		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f*multiplyRes), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(1280.0f*multiplyRes, 720.0f*multiplyRes), ImGuiCond_Always);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0,0.0,0.0,0.0));
+	}
+	
+	inline void ExitPlayerWindow(void) {
+        ImGui::End();
+        ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
+    };
+	
 	void MainMenuWindow();
 	
+	void PlayerWindow();
+	
+	void UserActivity();
 }
 
 

@@ -15,7 +15,7 @@ namespace Windows {
 		std::vector<std::string>suffix = {"B", "KB", "MB", "GB", "TB"};
 	
 		int i = 0;
-		 double dblBytes = bytes;
+		double dblBytes = bytes;
 
 		if (bytes > 1024) {
 			for (i = 0; (bytes / 1024) > 0 && i<(int)suffix.size()-1; i++, bytes /= 1024)
@@ -87,9 +87,16 @@ namespace Windows {
 					for (unsigned int n = 0; n < thislist.size(); n++){
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex(0);
+						
+						if(S_ISDIR(thislist[n].st.st_mode)){
+							ImGui::Image((void*)(intptr_t)imgloader->icons.FolderTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
+						}else{
+							ImGui::Image((void*)(intptr_t)imgloader->icons.FileTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
+						
+						}
+						ImGui::SameLine();
 						float curx = ImGui::GetCursorPosX();
 						float cury = ImGui::GetCursorPosY();
-						
 						
 						std::string itemid = "##" + std::to_string(n);
 						if (ImGui::Selectable(itemid.c_str(), false,selectable_flags,ImVec2(0,30.0f*multiplyRes))){
@@ -114,6 +121,7 @@ namespace Windows {
 							ImGui::Text("%s",humanSize(thislist[n].st.st_size).c_str());
 						}
 						ImGui::TableSetColumnIndex(2);
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0f);
 						ImGui::Text("%s",formatTimeShort(thislist[n].st.st_mtime).c_str());
 						
 						

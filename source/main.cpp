@@ -25,6 +25,7 @@
 
 #include "audioplayer.h"
 #include "nxmp-gfx.h"
+#include "imgloader.h"
 
 #define is_bit_set(val, bit_no) (((val) >> (bit_no)) & 1)
 
@@ -35,15 +36,12 @@ GLuint HEIGHT = 720;
 GLFWwindow *window;
 
 CAudioPlayer * audioplayer;
+CImgLoader * imgloader;
 
-std::vector<std::string> audioextendions = {".mp3",".wav"};
+std::vector<std::string> audioextendions = {".mp3",".flac"};
 
 extern u32 __nx_applet_exit_mode;
 
-static void errorCallback(int errorCode, const char* description)
-	{
-		fprintf(stderr, "Glfw Error %d: %s\n", errorCode, description);
-	}
 
 int
 main(int argc, const char* const* argv) {
@@ -99,18 +97,16 @@ main(int argc, const char* const* argv) {
 	nxmpgfx::SetColorTheme(0);
 	
 	nxmpgfx::UniFontLoader(false);
+	
+	imgloader = new CImgLoader("romfs:");
 
-	audioplayer = new CAudioPlayer(1);
+	audioplayer = new CAudioPlayer(0);
 	
 	fsbrowser = new CFSBrowser("");
 	
-	std::vector<std::string> extlist = {
-		".mp3",
-		".wav"
-	};
 
 
-	fsbrowser->DirList("/switch/nxmp",false,extlist);
+	fsbrowser->DirList("/switch/nxmp",false,audioextendions);
 
 /*
 	bool fileloaded = audioplayer->LoadFile("/switch/nxmp/test.mp3");
@@ -135,17 +131,24 @@ main(int argc, const char* const* argv) {
 		
 		
 		uint64_t event_ret = nxmpgfx::Process_UI_Events(std::chrono::system_clock::now());
+		if(event_ret)Windows::UserActivity();
 		
 		if(is_bit_set(event_ret,nxmpgfx::BUT_A)){
 			audioplayer->Pause();
+		}
+		if(is_bit_set(event_ret,nxmpgfx::BUT_Y)){
+			audioplayer->ViewSpectrum();
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_B)){
 			if(audioplayer->Running()){
 				audioplayer->Stop();
 			}else{
 				std::string newpath = fsbrowser->backDir();
-				fsbrowser->DirList(fsbrowser->getCurrentPath(),false,extlist);
+				fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextendions);
 			}
+		}
+		if(is_bit_set(event_ret,nxmpgfx::BUT_PLUS)){
+			break;
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_R)){
 			audioplayer->Seek(5);
@@ -169,7 +172,9 @@ main(int argc, const char* const* argv) {
 		if(!audioplayer->Running()){
 			Windows::MainMenuWindow();
 		}
-		
+		if(audioplayer->Running()){
+			Windows::PlayerWindow();
+		}
 		
 		nxmpgfx::Render_PreMPV();
 		
@@ -177,9 +182,6 @@ main(int argc, const char* const* argv) {
 		if(audioplayer->Running()){
 			audioplayer->DrawProjectM();
 		}
-		/*
-		audioplayer->DrawProjectM();
-		*/
 		
 		nxmpgfx::Render_PostMPV();
 		
@@ -190,7 +192,7 @@ main(int argc, const char* const* argv) {
     
 #endif
 	delete audioplayer;
-	
+	delete imgloader;
 	
 	glfwDestroyWindow(window);
 	glfwTerminate();
