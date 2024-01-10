@@ -1612,6 +1612,36 @@ void deko3dExit() {
 		*/
 	}
 
+#ifdef OPENGL_BACKEND
+	
+Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){	
+		int image_width = 0;
+		int image_height = 0;
+		int comp = 0;
+	
+		unsigned char* image_data = stbi_load_from_memory((const stbi_uc *)data, data_size, &image_width, &image_height, 0, 4); 
+		
+		if (image_data == NULL){
+			return {};
+		}
+		GLuint id = 0;
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		
+		//if(comp == 3)
+		//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+		//else if(comp == 4)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+
+		return Tex{id,image_width,image_height};
+}
+#endif
+
+
 #ifdef DEKO3D_BACKEND	
 
 	Texture load_texture(std::string path,DkImageFormat format, std::uint32_t flags,int desc_slot) {

@@ -122,7 +122,7 @@ namespace Windows {
 						}
 						ImGui::TableSetColumnIndex(2);
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0f);
-						ImGui::Text("%s",formatTimeShort(thislist[n].st.st_mtime).c_str());
+						ImGui::Text("%s",formatTimeShort(thislist[n].mod).c_str());
 						
 						
 					}

@@ -64,6 +64,94 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 
 			if (!path.empty()) {
 				if ((dir = opendir(path.c_str())) != nullptr) {
+					auto *reent    = __syscall_getreent();
+					auto *devoptab = devoptab_list[dir->dirData->device];	
+					FsFileSystem sdmc;
+					fsOpenSdCardFileSystem(&sdmc);
+					
+					
+					while (/*(ent = readdir(dir)) != nullptr*/ true) {
+							reent->deviceData = devoptab->deviceData;
+							struct stat st{0};
+							
+							if (devoptab->dirnext_r(reent, dir->dirData, dir->fileData.d_name, &st))
+							break;
+							
+							if ((/*path == "/" ||*/ strlen(dir->fileData.d_name) == 1) && dir->fileData.d_name[0] == '.') {
+								continue;
+							}
+							if ((/*path == "/" ||*/ strlen(dir->fileData.d_name) == 2) && dir->fileData.d_name[0] == '.' && dir->fileData.d_name[1] == '.') {
+								continue;
+							}
+							if (!showHidden && dir->fileData.d_name[0] == '.') {
+								if (strlen(dir->fileData.d_name) != 2 && dir->fileData.d_name[1] != '.') {
+									continue;
+								}
+							}
+							
+							
+							//fsentry.filename = dir->fileData.d_name;
+							fsentry_struct fsentry;
+							fsentry.filename = dir->fileData.d_name;
+							memcpy(&fsentry.st,&st,sizeof(struct stat));
+							
+							FsTimeStampRaw timestamp = {0};
+							char safe_buf[FS_MAX_PATH];
+							std::string fpath = removeLastSlash(path) + "/" + fsentry.filename;
+							strcpy(safe_buf, fpath.c_str());
+							fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
+							
+							
+							fsentry.st.st_ctime = timestamp.created;
+							fsentry.st.st_mtime = timestamp.modified;
+							fsentry.st.st_atime = timestamp.accessed;
+							fsentry.mod = timestamp.accessed;;
+							/*
+							
+							FS::FileEntry file;
+							file.name = dir->fileData.d_name;
+							
+							
+							file.path = FS::removeLastSlash(path) + "/" + file.name;
+							file.size = (size_t) st.st_size;
+							file.type = S_ISDIR(st.st_mode) ? FS::FileEntryType::Directory : FS::FileEntryType::File;
+							file.is_valid = 1;
+							file.created = (time_t)st.st_ctime;
+							file.modified = (time_t)st.st_mtime;
+							file.accessed = (time_t)st.st_atime;
+							*/
+							/*
+							
+							if(Utility::isImageExtension(file.name)){
+								file.mediatype = FS::FileMediaType::Image;
+								currentimagelist.push_back(file);
+							}
+							if(Utility::isArchiveExtension(file.name)){
+								file.mediatype = FS::FileMediaType::Archive;
+							}
+							*/
+							filelist.push_back(fsentry);
+							
+						}
+						
+					
+						closedir(dir);
+						fsFsClose(&sdmc);
+						std::sort(filelist.begin(), filelist.end(), SortNameAsc);
+						
+						
+						filelist.erase(
+							std::remove_if(filelist.begin(), filelist.end(), [extensions](const fsentry_struct &file) {
+								for (auto &ext : extensions) {
+									if (endsWith(file.filename, ext, false)) {
+										return  		false;
+									}
+								}
+								return !S_ISDIR(file.st.st_mode);
+						}), filelist.end());
+					}
+				/*
+				if ((dir = opendir(path.c_str())) != nullptr) {
 					FsFileSystem sdmc;
 					fsOpenSdCardFileSystem(&sdmc);
 					while ((ent = readdir(dir)) != nullptr) {
@@ -167,7 +255,7 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 						}else if(file.type == FS::FileEntryType::Directory){
 							currentlist.push_back(file);
 						}
-						*/
+						
 					}
 					fsFsClose(&sdmc);
 					closedir(dir);
@@ -195,8 +283,9 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 					if(sortOrder == FS::FS_SIZE_DESCENDINGORDER){
 						std::sort(currentlist.begin(), currentlist.end(), FS::SortSizeDesc);
 					}
-					*/
+					
 				}
+				*/
 			}
 		
 	}

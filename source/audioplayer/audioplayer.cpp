@@ -141,6 +141,13 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH){
 	}
 }
 
+void CAudioPlayer::ClearID3(){
+	id3tags.title = "";
+	id3tags.artist = "";
+	id3tags.album = "";
+	if(haveAlbumArt)glDeleteTextures(1, &AlbumArtTexture.id);		
+	haveAlbumArt = false;
+}
 
 bool CAudioPlayer::LoadFile(std::string filename){
 	if(fileloaded){
@@ -152,6 +159,9 @@ bool CAudioPlayer::LoadFile(std::string filename){
 		avformat_free_context(nxmpaudioctx.pFormatCtx);
 		avcodec_free_context(&nxmpaudioctx.audCtx);
 		fileloaded=false;
+		ClearID3();
+		
+		
 	}
 	
 	nxmpaudioctx.pFormatCtx = avformat_alloc_context();
@@ -165,6 +175,34 @@ bool CAudioPlayer::LoadFile(std::string filename){
 		avformat_free_context(nxmpaudioctx.pFormatCtx);
         return false;
     }
+	
+	
+	
+	/*
+	if(nxmpaudioctx.pFormatCtx->metadata){
+		AVDictionaryEntry* tag = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "title", NULL, 0);
+		std::string title(tag->value);
+	}
+	*/
+	
+	
+	AVDictionaryEntry *t = NULL;
+	
+	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "title", NULL, 0))) {
+		id3tags.title = t->value;		
+		t = NULL;
+	}
+	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "artist", NULL, 0))) {
+		id3tags.artist = t->value;
+		t = NULL;		
+	}
+	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "album", NULL, 0))) {
+		id3tags.album = t->value;
+		t = NULL;
+	}
+	
+	
+	
 	bool foundAudio = false;
 	bool foundVideo = false;
 	for (unsigned int i = 0; i < nxmpaudioctx.pFormatCtx->nb_streams; i++) {
@@ -175,6 +213,7 @@ bool CAudioPlayer::LoadFile(std::string filename){
             nxmpaudioctx.audpar = localparam;
             nxmpaudioctx.audId = i;
             foundAudio = true;
+			
         }
 		if (localparam->codec_type == AVMEDIA_TYPE_VIDEO && !foundVideo) {
             nxmpaudioctx.vidCodec = localcodec;
@@ -182,6 +221,17 @@ bool CAudioPlayer::LoadFile(std::string filename){
             nxmpaudioctx.vidId = i;
 			foundVideo = true;
         }
+		
+		if (nxmpaudioctx.pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+			
+			
+			AVPacket * pkt = &nxmpaudioctx.pFormatCtx->streams[i]->attached_pic;
+			haveAlbumArt = true;
+			AlbumArtTexture =  nxmpgfx::load_texture_from_mem(pkt->data,pkt->size);
+			
+			
+		}
+		
         //if (foundAudio) { break; }
     }
 	
@@ -280,8 +330,16 @@ unsigned int CAudioPlayer::getSampleRate(){
 	return nxmpaudioctx.audCtx->sample_rate;
 }
 
+std::string CAudioPlayer::getFormat(){
+	return nxmpaudioctx.pFormatCtx->iformat->long_name;
+}
+
 long CAudioPlayer::getDuration(){
 	return nxmpaudioctx.duration;
+}
+
+nxmilk_id3tags_struct CAudioPlayer::getID3(){
+	return id3tags;
 }
 
 

@@ -18,6 +18,7 @@
 typedef struct{
 	std::string filename;
 	struct stat st{0};
+	time_t mod;
 }fsentry_struct;
 
 

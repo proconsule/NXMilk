@@ -219,6 +219,9 @@ namespace nxmpgfx{
 	
 #ifdef OPENGL_BACKEND
 	GLuint getFBO_Texture();
+	Tex load_texture_from_mem(unsigned char *data,unsigned int data_size);
+	
+	
 #endif
 	
 #ifdef DEKO3D_BACKEND

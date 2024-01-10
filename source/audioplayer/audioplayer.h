@@ -6,6 +6,9 @@
 
 #include <SDL2/SDL.h>
 
+#include "nxmp-gfx.h"
+#include "stb_image.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,6 +61,14 @@ typedef struct {
 }nxmpaudioctx_struct;
 
 
+typedef struct{
+	std::string album;
+	std::string artist;
+	std::string title;
+	
+	
+}nxmilk_id3tags_struct;
+
 
 class CAudioPlayer{
 public:
@@ -80,12 +91,17 @@ public:
 	std::string getFormat();
 	std::string getCodec();
 	std::string getFileName();
+	nxmilk_id3tags_struct getID3();
+	void ClearID3();
 	long getDuration();
 	long getPosition();
 	
 	void NextVisPreset();
 	void PrevVisPreset();
 	void ViewSpectrum();
+	
+	bool haveAlbumArt = false;
+	Tex AlbumArtTexture;
 	
 private:
 	//SDL_AudioDeviceID auddev;
@@ -103,6 +119,9 @@ private:
     //AVCodecParameters *vidpar, *audpar;
 	Thread t0;
 	std::string loadedfilename;
+	
+	nxmilk_id3tags_struct id3tags;
+
 	
 	
 };
