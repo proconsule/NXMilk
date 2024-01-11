@@ -8,6 +8,46 @@ namespace Windows {
 	float textfadealpha = 1.0f;
 	double titleCycle = 0.0f;
 	int titleCyclePos = 0;
+
+	
+	void DrawFFIcon(ImDrawList* draw_list,ImVec2 pos,float size,ImVec4 _color){
+		
+		ImVec2 p1 = ImVec2(pos.x,pos.y-size/2.0f);
+		ImVec2 p2 = ImVec2(pos.x,pos.y+size/2.0f);
+		ImVec2 p3 = ImVec2(pos.x+((size/3.0f)*2.0),pos.y);
+		
+		
+		ImVec2 p4 = ImVec2(pos.x+(size/3.0f),pos.y-size/2.0f);
+		ImVec2 p5 = ImVec2(pos.x+(size/3.0f),pos.y+size/2.0f);
+		ImVec2 p6 = ImVec2(pos.x+size,pos.y);
+		
+		
+		draw_list->AddTriangleFilled(p1,p2,p3,ImGui::ColorConvertFloat4ToU32(_color));
+		draw_list->AddTriangleFilled(p4,p5,p6,ImGui::ColorConvertFloat4ToU32(_color));
+	}
+	
+	void DrawPlayIcon(ImDrawList* draw_list,ImVec2 pos,float size,ImVec4 _color){
+		
+		ImVec2 p1 = ImVec2(pos.x,pos.y-size/2.0f);
+		ImVec2 p2 = ImVec2(pos.x,pos.y+size/2.0f);
+		ImVec2 p3 = ImVec2(pos.x+size,pos.y);
+		
+		draw_list->AddTriangleFilled(p1,p2,p3,ImGui::ColorConvertFloat4ToU32(_color));
+	}
+	
+	void DrawPauseIcon(ImDrawList* draw_list,ImVec2 pos,float size,ImVec4 _color){
+		
+		ImVec2 p1 = ImVec2(pos.x,pos.y-size/2.0f);
+		ImVec2 p2 = ImVec2(pos.x+size/3.0f,pos.y+size/2.0f);
+		
+		ImVec2 p3 = ImVec2(pos.x+(size/3.0f)*2.0,pos.y-size/2.0f);
+		ImVec2 p4 = ImVec2(pos.x+size,pos.y+size/2.0f);
+		
+		draw_list->AddRectFilled(p1,p2,ImGui::ColorConvertFloat4ToU32(_color));
+		draw_list->AddRectFilled(p3,p4,ImGui::ColorConvertFloat4ToU32(_color));
+		
+	}
+	
 	
 	void PlayerWindow(){
 		SetupPlayerWindow();
@@ -112,6 +152,13 @@ namespace Windows {
 		
 		ImVec2 image_pnew = ImVec2(1280.0f*multiplyRes-210.0f*multiplyRes,65.0f*multiplyRes*multiplyRes); 
 		ImVec2 image_p1 = ImVec2(1280.0f*multiplyRes-10.0f*multiplyRes,275.0f*multiplyRes);;
+		
+		
+		DrawPlayIcon(draw_list,ImVec2(10.0f,720.0f*multiplyRes-100.0f*multiplyRes),40.0f,mytextcol);
+		DrawPauseIcon(draw_list,ImVec2(100.0f,720.0f*multiplyRes-100.0f*multiplyRes),40.0f,mytextcol);
+		DrawFFIcon(draw_list,ImVec2(200.0f,720.0f*multiplyRes-100.0f*multiplyRes),40.0f,mytextcol);
+		
+		
 		
 		if(audioplayer->haveAlbumArt){
 			draw_list->AddImage((void*)(intptr_t)audioplayer->AlbumArtTexture.id,image_pnew,image_p1,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(mytextcol));

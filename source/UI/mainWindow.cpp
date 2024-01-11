@@ -7,8 +7,9 @@ CFSBrowser * fsbrowser = nullptr;
 
 extern std::vector<std::string> audioextendions;
 
+
 namespace Windows {
-	float multiplyRes = 1.0f;
+	
 
 	std::string humanSize(size_t bytes)
 	{

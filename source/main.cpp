@@ -38,6 +38,10 @@ GLFWwindow *window;
 CAudioPlayer * audioplayer;
 CImgLoader * imgloader;
 
+float multiplyRes = 1.0f;
+bool isHandheld = true;
+
+
 std::vector<std::string> audioextendions = {".mp3",".flac"};
 
 extern u32 __nx_applet_exit_mode;
@@ -48,13 +52,42 @@ main(int argc, const char* const* argv) {
 	
 	
 	appletLockExit();
+	romfsInit();
+	
+	
+	AppletOperationMode stus=appletGetOperationMode();
+	if (stus == AppletOperationMode_Handheld) {
+		isHandheld=true;
+		multiplyRes = 1.0f;
+	}
+	if (stus == AppletOperationMode_Console) {
+		isHandheld=false;
+		multiplyRes = 1.5f;
+	}
+	
+	
+	AppletType at = appletGetAppletType();
+    if ( at != AppletType_Application && at != AppletType_SystemApplication) {
+		
+		
+		nxmpgfx::Init_Backend(!isHandheld,true);
+		nxmpgfx::Init_Backend_AppletMode(!isHandheld);
+		nxmpgfx::loopAppletMode();
+		
+		nxmpgfx::Destroy_Backend();
+		romfsExit();
+		appletUnlockExit();
+		return 0;
+	}
+	
+	
 	
 	SocketInitConfig cfg = *(socketGetDefaultInitConfig());
 	cfg.bsd_service_type = BsdServiceType_System;
 	socketInitialize(&cfg);
     
 	nxlinkStdio();
-	romfsInit();
+	
 
 
 	
@@ -108,18 +141,6 @@ main(int argc, const char* const* argv) {
 
 	fsbrowser->DirList("/switch/nxmp",false,audioextendions);
 
-/*
-	bool fileloaded = audioplayer->LoadFile("/switch/nxmp/test.mp3");
-
-	if(fileloaded){
-		printf("File Loaded\n");
-	}
-	printf("Codec: %s\n",audioplayer->getCodec().c_str());
-	printf("Samplerate: %d\n",audioplayer->getSampleRate());
-	printf("Duration: %ld\n",audioplayer->getDuration());
-	audioplayer->Play();
-*/
-
 #ifdef __SWITCH__	
 
 	appletSetMediaPlaybackState(true);
@@ -161,8 +182,6 @@ main(int argc, const char* const* argv) {
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_ZR)){
 			audioplayer->NextVisPreset();
-			//int plsidx = projectm_playlist_play_next(_playlist, true);
-			//printf("PLS ITEM: %s\n",projectm_playlist_item(_playlist,plsidx));
 		}
 		
 		

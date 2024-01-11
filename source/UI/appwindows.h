@@ -16,9 +16,11 @@ extern CImgLoader *imgloader;
 
 extern std::vector<std::string> audioextendions;
 
+extern float multiplyRes;
+
 namespace Windows {
 	
-extern float multiplyRes;
+
 
 inline void SetupMainWindow(void) {
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
