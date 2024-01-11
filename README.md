@@ -20,7 +20,7 @@ Presets
 ----
 - Many milkdrop presets to use https://github.com/projectM-visualizer/presets-cream-of-the-crop
 
-Library used in this project
+Libraies used in this project
 -----
 - FFMpeg https://ffmpeg.org/
 - ImGui https://github.com/ocornut/imgui
