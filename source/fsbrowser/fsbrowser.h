@@ -17,8 +17,7 @@
 
 typedef struct{
 	std::string filename;
-	struct stat st{0};
-	time_t mod;
+	struct stat st;
 }fsentry_struct;
 
 
@@ -33,6 +32,7 @@ public:
 private:
 	std::vector<fsentry_struct> filelist;
 	std::string currentpath;
+	std::string basepath;
 	
 };
 

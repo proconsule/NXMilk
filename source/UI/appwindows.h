@@ -14,7 +14,7 @@ extern CFSBrowser * fsbrowser;
 extern CAudioPlayer * audioplayer;
 extern CImgLoader *imgloader;
 
-extern std::vector<std::string> audioextendions;
+extern std::vector<std::string> audioextensions;
 
 extern float multiplyRes;
 
@@ -62,10 +62,12 @@ inline void SetupWindow(void) {
     };
 	
 	void MainMenuWindow();
+	void USBWindow();
 	
 	void PlayerWindow();
 	
 	void UserActivity();
+	void VisPlaylistActivity();
 }
 
 

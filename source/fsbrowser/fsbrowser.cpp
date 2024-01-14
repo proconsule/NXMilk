@@ -64,16 +64,15 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 
 			if (!path.empty()) {
 				if ((dir = opendir(path.c_str())) != nullptr) {
+				
 					auto *reent    = __syscall_getreent();
 					auto *devoptab = devoptab_list[dir->dirData->device];	
-					FsFileSystem sdmc;
-					fsOpenSdCardFileSystem(&sdmc);
+					
 					
 					
 					while (/*(ent = readdir(dir)) != nullptr*/ true) {
 							reent->deviceData = devoptab->deviceData;
 							struct stat st{0};
-							
 							if (devoptab->dirnext_r(reent, dir->dirData, dir->fileData.d_name, &st))
 							break;
 							
@@ -90,202 +89,45 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 							}
 							
 							
-							//fsentry.filename = dir->fileData.d_name;
+							
 							fsentry_struct fsentry;
 							fsentry.filename = dir->fileData.d_name;
 							memcpy(&fsentry.st,&st,sizeof(struct stat));
 							
-							FsTimeStampRaw timestamp = {0};
-							char safe_buf[FS_MAX_PATH];
-							std::string fpath = removeLastSlash(path) + "/" + fsentry.filename;
-							strcpy(safe_buf, fpath.c_str());
-							fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
-							
-							
-							fsentry.st.st_ctime = timestamp.created;
-							fsentry.st.st_mtime = timestamp.modified;
-							fsentry.st.st_atime = timestamp.accessed;
-							fsentry.mod = timestamp.accessed;;
-							/*
-							
-							FS::FileEntry file;
-							file.name = dir->fileData.d_name;
-							
-							
-							file.path = FS::removeLastSlash(path) + "/" + file.name;
-							file.size = (size_t) st.st_size;
-							file.type = S_ISDIR(st.st_mode) ? FS::FileEntryType::Directory : FS::FileEntryType::File;
-							file.is_valid = 1;
-							file.created = (time_t)st.st_ctime;
-							file.modified = (time_t)st.st_mtime;
-							file.accessed = (time_t)st.st_atime;
-							*/
-							/*
-							
-							if(Utility::isImageExtension(file.name)){
-								file.mediatype = FS::FileMediaType::Image;
-								currentimagelist.push_back(file);
+							if(path.find_first_of("/") == 0){
+								FsFileSystem sdmc;
+								fsOpenSdCardFileSystem(&sdmc);
+								
+								FsTimeStampRaw timestamp = {0};
+								char safe_buf[FS_MAX_PATH];
+								std::string fullpath = removeLastSlash(path) + "/" + fsentry.filename;
+								strcpy(safe_buf, fullpath.c_str());
+								fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
+								fsentry.st.st_atime = timestamp.accessed;
+								fsentry.st.st_ctime = timestamp.created;
+								fsentry.st.st_mtime = timestamp.modified;
+								fsFsClose(&sdmc);
 							}
-							if(Utility::isArchiveExtension(file.name)){
-								file.mediatype = FS::FileMediaType::Archive;
-							}
-							*/
+							
+							
 							filelist.push_back(fsentry);
 							
 						}
 						
 					
 						closedir(dir);
-						fsFsClose(&sdmc);
 						std::sort(filelist.begin(), filelist.end(), SortNameAsc);
-						
-						
 						filelist.erase(
 							std::remove_if(filelist.begin(), filelist.end(), [extensions](const fsentry_struct &file) {
 								for (auto &ext : extensions) {
 									if (endsWith(file.filename, ext, false)) {
-										return  		false;
+										return false;
 									}
 								}
 								return !S_ISDIR(file.st.st_mode);
 						}), filelist.end());
 					}
-				/*
-				if ((dir = opendir(path.c_str())) != nullptr) {
-					FsFileSystem sdmc;
-					fsOpenSdCardFileSystem(&sdmc);
-					while ((ent = readdir(dir)) != nullptr) {
-						if ((path == "/" || strlen(ent->d_name) == 1) && ent->d_name[0] == '.') {
-							continue;
-						}
-						if ((path == "/" || strlen(ent->d_name) == 2) && ent->d_name[0] == '.' && ent->d_name[1] == '.') {
-							continue;
-						}
-						if (!showHidden && ent->d_name[0] == '.') {
-							if (strlen(ent->d_name) != 2 && ent->d_name[1] != '.') {
-								continue;
-							}
-						}
-
-
-						fsentry_struct fsentry;
-						
-						fsentry.filename = ent->d_name;
-						std::string fpath = removeLastSlash(path) + "/" + fsentry.filename;
-						
-						FsTimeStampRaw timestamp = {0};
-						char safe_buf[FS_MAX_PATH];
-						strcpy(safe_buf, fpath.c_str());
-						fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
-						
-						
-						
-						struct stat st{0};
-						if (stat(fpath.c_str(), &st) == 0) {
-							//memcpy(&fsentry.st,&st,sizeof(struct stat));
-							fsentry.st.st_size =  st.st_size;
-							fsentry.st.st_mode = st.st_mode;
-							fsentry.st.st_ctime = timestamp.created;
-							fsentry.st.st_mtime = timestamp.modified;
-							fsentry.st.st_atime = timestamp.accessed;
-						}
-						
-						//filelist.push_back(fsentry);
-						
-						
-						
-						if(!S_ISDIR(st.st_mode)){
-							bool isMediafile = false;
-							for (auto &ext : extensions) {
-								if (endsWith(fsentry.filename, ext, false)) {
-									isMediafile = true;
-								}
-							}
-							if(isMediafile){
-								
-								filelist.push_back(fsentry);
-							}
-						}else if(S_ISDIR(st.st_mode)){
-							filelist.push_back(fsentry);
-						}
-						
-
-						/*
-
-						FS::FileEntry file;
-						file.name = ent->d_name;
-						file.dbread = -1;
-						file.path = FS::removeLastSlash(path) + "/" + file.name;
-						
-						FsTimeStampRaw timestamp = {0};
-						char safe_buf[FS_MAX_PATH];
-						strcpy(safe_buf, file.path.c_str());
-						fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
-						
-						
-						
-						struct stat st{0};
-						if (stat(file.path.c_str(), &st) == 0) {
-							file.size = (size_t) st.st_size;
-							file.type = S_ISDIR(st.st_mode) ? FS::FileEntryType::Directory : FS::FileEntryType::File;
-							file.is_valid = 1;
-							file.created = timestamp.created;
-							file.modified = timestamp.modified;
-							file.accessed = timestamp.accessed;
-						}
-						
-						
-						if(file.type == FS::FileEntryType::File){
-							bool isMediafile = false;
-							for (auto &ext : extensions) {
-								if (Utility::endsWith(file.name, ext, false)) {
-									isMediafile = true;
-								}
-							}
-							if(isMediafile){
-								if(Utility::isImageExtension(file.name)){
-									file.mediatype = FS::FileMediaType::Image;
-									currentimagelist.push_back(file);
-								}
-								if(Utility::isArchiveExtension(file.name)){
-									file.mediatype = FS::FileMediaType::Archive;
-								}
-								currentlist.push_back(file);
-							}
-						}else if(file.type == FS::FileEntryType::Directory){
-							currentlist.push_back(file);
-						}
-						
-					}
-					fsFsClose(&sdmc);
-					closedir(dir);
-					std::sort(filelist.begin(), filelist.end(), SortNameAsc);
-					
-					/*
-					
-					if(sortOrder == FS::FS_NAME_ASCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortNameAsc);
-					}
-					if(sortOrder == FS::FS_NAME_DESCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortNameDesc);
-					}
-					
-					if(sortOrder == FS::FS_DATE_ASCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortDateAsc);
-					}
-					if(sortOrder == FS::FS_DATE_DESCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortDateDesc);
-					}
-					
-					if(sortOrder == FS::FS_SIZE_ASCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortSizeAsc);
-					}
-					if(sortOrder == FS::FS_SIZE_DESCENDINGORDER){
-						std::sort(currentlist.begin(), currentlist.end(), FS::SortSizeDesc);
-					}
-					
-				}
-				*/
+				
 			}
 		
 	}

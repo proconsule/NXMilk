@@ -81,6 +81,7 @@ public:
 	void Seek(int seconds);
 	
 	bool Running();
+	bool isPaused();
 	void DrawProjectM();
 	
 	bool device_ready = false;
@@ -98,7 +99,11 @@ public:
 	
 	void NextVisPreset();
 	void PrevVisPreset();
+	std::string getCurrentPlaylistItem();
 	void ViewSpectrum();
+	
+	
+	
 	
 	bool haveAlbumArt = false;
 	Tex AlbumArtTexture;
@@ -120,8 +125,12 @@ private:
 	Thread t0;
 	std::string loadedfilename;
 	
+	bool spectrumvis = false;
+	
 	nxmilk_id3tags_struct id3tags;
 
+
+	unsigned int bitrate;
 	
 	
 };

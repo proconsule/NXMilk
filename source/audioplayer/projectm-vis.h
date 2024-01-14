@@ -2,6 +2,7 @@
 #define NXMP_PROJECTM_VIS_H
 
 #include <string>
+#include <vector>
 
 #include "projectM-4/projectM.h"
 #include "projectM-4/playlist.h"
@@ -25,6 +26,10 @@ public:
 	void PrevVisPreset();
 	
 	void ViewSpectrum();
+	
+	std::vector<std::string> getPlaylistItems();
+	std::string getCurrentPlaylistItem();
+	
 	
 private:
 	projectm_handle projectM{nullptr};

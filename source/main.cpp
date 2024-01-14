@@ -27,6 +27,8 @@
 #include "nxmp-gfx.h"
 #include "imgloader.h"
 
+#include "usbfs.h"
+
 #define is_bit_set(val, bit_no) (((val) >> (bit_no)) & 1)
 
 
@@ -42,9 +44,14 @@ float multiplyRes = 1.0f;
 bool isHandheld = true;
 
 
-std::vector<std::string> audioextendions = {".mp3",".flac"};
+std::vector<std::string> audioextensions = {".mp3",".flac",".ogg"};
 
 extern u32 __nx_applet_exit_mode;
+
+
+USBMounter *MyUSBMount = nullptr;
+
+bool USBDialog = false;
 
 
 int
@@ -115,10 +122,6 @@ main(int argc, const char* const* argv) {
 	
 	nxmpgfx::Init_Backend(false,true);
 	nxmpgfx::Init_Backend_Splash(false);
-	
-	
-	
-	nxmpgfx::updateSplash(25);
 	nxmpgfx::updateSplash(50);
 	
 	
@@ -128,18 +131,19 @@ main(int argc, const char* const* argv) {
 	
 	nxmpgfx::Init_ImGui(false);
 	nxmpgfx::SetColorTheme(0);
+	nxmpgfx::setEnableTouch(true);
 	
 	nxmpgfx::UniFontLoader(false);
 	
 	imgloader = new CImgLoader("romfs:");
 
-	audioplayer = new CAudioPlayer(0);
+	audioplayer = new CAudioPlayer(1);
 	
 	fsbrowser = new CFSBrowser("");
-	
+	nxmpgfx::updateSplash(100);
 
 
-	fsbrowser->DirList("/switch/nxmp",false,audioextendions);
+	fsbrowser->DirList("/switch/nxmp",false,audioextensions);
 
 #ifdef __SWITCH__	
 
@@ -152,20 +156,37 @@ main(int argc, const char* const* argv) {
 		
 		
 		uint64_t event_ret = nxmpgfx::Process_UI_Events(std::chrono::system_clock::now());
-		if(event_ret)Windows::UserActivity();
+		//if(event_ret)Windows::UserActivity();
+		
+		if(ImGui::IsMouseDown(ImGuiMouseButton_Left)){
+			Windows::UserActivity();
+		}
+		
 		
 		if(is_bit_set(event_ret,nxmpgfx::BUT_A)){
-			audioplayer->Pause();
+			Windows::UserActivity();
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_Y)){
-			audioplayer->ViewSpectrum();
+			if(audioplayer->Running()){
+				audioplayer->ViewSpectrum();
+			}else{
+				if(MyUSBMount == nullptr){
+					MyUSBMount = new USBMounter();
+					
+				}
+				USBDialog = !USBDialog;
+				if(!USBDialog){
+					fsbrowser->DirList("/switch/nxmp",false,audioextensions);
+					MyUSBMount->setBasePath("");
+				}
+			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_B)){
 			if(audioplayer->Running()){
 				audioplayer->Stop();
 			}else{
 				std::string newpath = fsbrowser->backDir();
-				fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextendions);
+				fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_PLUS)){
@@ -173,15 +194,19 @@ main(int argc, const char* const* argv) {
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_R)){
 			audioplayer->Seek(5);
+			Windows::UserActivity();
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_L)){
 			audioplayer->Seek(-5);
+			Windows::UserActivity();
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_ZL)){
 			audioplayer->PrevVisPreset();
+			Windows::VisPlaylistActivity();
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_ZR)){
 			audioplayer->NextVisPreset();
+			Windows::VisPlaylistActivity();
 		}
 		
 		
@@ -189,7 +214,11 @@ main(int argc, const char* const* argv) {
         ImGui::NewFrame();
 		
 		if(!audioplayer->Running()){
-			Windows::MainMenuWindow();
+			if(USBDialog && MyUSBMount->getBasePath() == ""){
+				Windows::USBWindow();
+			}else{
+				Windows::MainMenuWindow();
+			}		
 		}
 		if(audioplayer->Running()){
 			Windows::PlayerWindow();
@@ -212,6 +241,8 @@ main(int argc, const char* const* argv) {
 #endif
 	delete audioplayer;
 	delete imgloader;
+	
+	if(MyUSBMount!=nullptr)delete MyUSBMount;
 	
 	glfwDestroyWindow(window);
 	glfwTerminate();

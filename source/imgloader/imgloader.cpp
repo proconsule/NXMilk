@@ -36,6 +36,10 @@ CImgLoader::CImgLoader(std::string basepath){
 	/* File Browser Icons */
 	TxtLoadFromFile(basepath+"/folder.png",&icons.FolderTexture.id,&icons.FolderTexture.width,&icons.FolderTexture.height);
 	TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);
+	
+	TxtLoadFromFile(basepath+"/play.png",&icons.PlayIcon.id,&icons.PlayIcon.width,&icons.PlayIcon.height);
+	TxtLoadFromFile(basepath+"/pause.png",&icons.PauseIcon.id,&icons.PauseIcon.width,&icons.PauseIcon.height);
+	
 	/*
 	Utility::TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);
 	Utility::TxtLoadFromFile(basepath+"/archive.png",&icons.ArchiveTexture.id,&icons.ArchiveTexture.width,&icons.ArchiveTexture.height);
@@ -67,8 +71,13 @@ CImgLoader::~CImgLoader(){
 	glDeleteTextures(1, &icons.FolderTexture.id);
 	glDeleteTextures(1, &icons.FileTexture.id);
 	
+	glDeleteTextures(1, &icons.PlayIcon.id);
+	glDeleteTextures(1, &icons.PauseIcon.id);
+	
 	icons.FolderTexture.id = 0;
 	icons.FileTexture.id = 0;
+	icons.PlayIcon.id = 0;
+	icons.PauseIcon.id = 0;
 	
 	
 #endif

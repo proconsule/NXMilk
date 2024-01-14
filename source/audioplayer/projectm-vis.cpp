@@ -70,3 +70,23 @@ void CProjectMVis::ViewSpectrum(){
 	projectm_load_preset_file(projectM,"romfs:/presets/milk/spectrum.milk",false);
 	
 }
+
+std::vector<std::string> CProjectMVis::getPlaylistItems(){
+	std::vector<std::string> retvec;
+	char ** playlist_items = projectm_playlist_items(playlist,0,projectm_playlist_size(playlist));
+	int count = 0;
+	while(true){
+		if(playlist_items[count] == NULL)break;
+		std::string entry = playlist_items[count++];
+		retvec.push_back(entry);
+	}
+	return retvec;
+}
+
+std::string CProjectMVis::getCurrentPlaylistItem(){
+	std::string fullpath = projectm_playlist_item(playlist,projectm_playlist_get_position(playlist));
+	return fullpath.substr(fullpath.find_last_of("/")+1);	
+}
+
+
+		

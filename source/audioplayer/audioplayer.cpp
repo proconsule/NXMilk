@@ -2,6 +2,7 @@
 
 #include <malloc.h>
 
+
 #define BUFFER_COUNT 5
 
 
@@ -165,38 +166,49 @@ bool CAudioPlayer::LoadFile(std::string filename){
 	}
 	
 	nxmpaudioctx.pFormatCtx = avformat_alloc_context();
-	if (avformat_open_input(&nxmpaudioctx.pFormatCtx, filename.c_str(), NULL, NULL) < 0) {
-        //sprintf(bufmsg, "Cannot open %s", filename.c_str());
-        //perror(bufmsg);
+	AVDictionary *opts = NULL;
+	av_dict_set( &opts, "standard", "PAL", 0 );
+	int ret = avformat_open_input(&nxmpaudioctx.pFormatCtx, std::string(std::string("file:")+filename).c_str(), NULL, NULL);
+	
+	if (ret < 0) {
+		char err[1024] = { 0 };
+		int nRet = av_strerror(ret, err, 1024);
+        printf("Cannot open %s errno %s\n", filename.c_str(),err);
+        
         return false;
     }
-	if (avformat_find_stream_info(nxmpaudioctx.pFormatCtx, NULL) < 0) {
+	
+	ret = avformat_find_stream_info(nxmpaudioctx.pFormatCtx, NULL);
+	if (ret < 0) {
         avformat_close_input(&nxmpaudioctx.pFormatCtx);
 		avformat_free_context(nxmpaudioctx.pFormatCtx);
+		printf("avformat_find_stream_info error %d\n",ret);
         return false;
     }
 	
+	//av_dump_format(nxmpaudioctx.pFormatCtx, 0, std::string(std::string("file:")+filename).c_str(), 0);
 	
 	
-	/*
-	if(nxmpaudioctx.pFormatCtx->metadata){
-		AVDictionaryEntry* tag = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "title", NULL, 0);
-		std::string title(tag->value);
+	AVDictionary* dict = nxmpaudioctx.pFormatCtx->metadata;
+         // In Ogg, the internal comment metadata headers are attached to a single content stream.
+         // By convention, it's the first logical bitstream occuring.
+	if (!dict && nxmpaudioctx.pFormatCtx->nb_streams > 0) {
+		dict = nxmpaudioctx.pFormatCtx->streams[0]->metadata;
 	}
-	*/
+	
 	
 	
 	AVDictionaryEntry *t = NULL;
 	
-	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "title", NULL, 0))) {
+	if ((t = av_dict_get(dict, "title", NULL, 0))) {
 		id3tags.title = t->value;		
 		t = NULL;
 	}
-	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "artist", NULL, 0))) {
+	if ((t = av_dict_get(dict, "artist", NULL, 0))) {
 		id3tags.artist = t->value;
 		t = NULL;		
 	}
-	if ((t = av_dict_get(nxmpaudioctx.pFormatCtx->metadata, "album", NULL, 0))) {
+	if ((t = av_dict_get(dict, "album", NULL, 0))) {
 		id3tags.album = t->value;
 		t = NULL;
 	}
@@ -207,12 +219,22 @@ bool CAudioPlayer::LoadFile(std::string filename){
 	bool foundVideo = false;
 	for (unsigned int i = 0; i < nxmpaudioctx.pFormatCtx->nb_streams; i++) {
         AVCodecParameters *localparam = nxmpaudioctx.pFormatCtx->streams[i]->codecpar;
-        AVCodec *localcodec = avcodec_find_decoder(localparam->codec_id);
+        
+		AVDictionaryEntry *t = NULL;
+			
+		
+		AVCodec *localcodec = avcodec_find_decoder(localparam->codec_id);
         if (localparam->codec_type == AVMEDIA_TYPE_AUDIO && !foundAudio) {
+			
+			
             nxmpaudioctx.audCodec = localcodec;
             nxmpaudioctx.audpar = localparam;
+			if(nxmpaudioctx.audpar->extradata){
+				
+			}
             nxmpaudioctx.audId = i;
             foundAudio = true;
+			
 			
         }
 		if (localparam->codec_type == AVMEDIA_TYPE_VIDEO && !foundVideo) {
@@ -220,19 +242,16 @@ bool CAudioPlayer::LoadFile(std::string filename){
             nxmpaudioctx.vidpar = localparam;
             nxmpaudioctx.vidId = i;
 			foundVideo = true;
+			
         }
 		
 		if (nxmpaudioctx.pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-			
-			
 			AVPacket * pkt = &nxmpaudioctx.pFormatCtx->streams[i]->attached_pic;
 			haveAlbumArt = true;
 			AlbumArtTexture =  nxmpgfx::load_texture_from_mem(pkt->data,pkt->size);
 			
-			
 		}
-		
-        //if (foundAudio) { break; }
+
     }
 	
 	if(!foundAudio){
@@ -245,6 +264,16 @@ bool CAudioPlayer::LoadFile(std::string filename){
         avcodec_free_context(&nxmpaudioctx.audCtx);
 		return false;
     }
+	
+	if (nxmpaudioctx.audpar->codec_id == AV_CODEC_ID_VORBIS  ){
+		bitrate = nxmpaudioctx.pFormatCtx->bit_rate;
+	}else if (nxmpaudioctx.audpar->codec_id == AV_CODEC_ID_FLAC  ){
+		bitrate = nxmpaudioctx.pFormatCtx->bit_rate;
+	} else {
+		bitrate = nxmpaudioctx.audCtx->bit_rate;
+	}
+	
+	
     if (avcodec_open2(nxmpaudioctx.audCtx, nxmpaudioctx.audCodec, NULL) < 0) {
         avcodec_free_context(&nxmpaudioctx.audCtx);
         return false;
@@ -298,6 +327,10 @@ void CAudioPlayer::Pause(){
 	nxmpaudioctx.pause = !nxmpaudioctx.pause;
 }
 
+bool CAudioPlayer::isPaused(){
+	return nxmpaudioctx.pause;
+}
+
 void CAudioPlayer::Stop(){
 	if(nxmpaudioctx.running){
 		nxmpaudioctx.exit = true;
@@ -308,18 +341,26 @@ void CAudioPlayer::Stop(){
 }
 
 void CAudioPlayer::NextVisPreset(){
+	spectrumvis = false;
 	nxmpaudioctx.pmvis->NextVisPreset();
 }
 void CAudioPlayer::PrevVisPreset(){
+	spectrumvis = false;
 	nxmpaudioctx.pmvis->PrevVisPreset();
 }
 
 void CAudioPlayer::ViewSpectrum(){
+	spectrumvis = true;
 	nxmpaudioctx.pmvis->ViewSpectrum();
 }
 
+std::string CAudioPlayer::getCurrentPlaylistItem(){
+	if(spectrumvis)return "Spectrum";
+	return nxmpaudioctx.pmvis->getCurrentPlaylistItem();
+}
+
 unsigned int CAudioPlayer::getBitRate(){
-	return nxmpaudioctx.audCtx->bit_rate;
+	return bitrate;
 }
 
 std::string CAudioPlayer::getCodec(){
@@ -458,22 +499,13 @@ void AudrenAudioThread(void *arg) {
 	aframe = av_frame_alloc();
     packet = av_packet_alloc();
 	ctx->running = true;
-	
-	
-	//audrvVoiceStart(&m_driver, 0);
+
+
 	while (!ctx->exit){
 			
 				
 			int ffres = av_read_frame(ctx->pFormatCtx, packet);
 			if(ffres <0)break;
-			/*
-			if (packet->stream_index == ctx->audId) {
-				ctx->currentpos = (long) (1000000 * (packet->pts * ((float) ctx->pFormatCtx->streams[ctx->audId]->time_base.num / ctx->pFormatCtx->streams[ctx->audId]->time_base.den)));
-				playaudio_audren(ctx->audCtx,ctx->resampler, packet, aframe, ctx->projectMHandle);
-				
-			}
-			*/
-			
 			
             if(ctx->seek!=0){
 				int seconds = ctx->currentpos/1000000+ctx->seek;
@@ -491,13 +523,7 @@ void AudrenAudioThread(void *arg) {
 			}
 			if (packet->stream_index == ctx->audId) {
 				ctx->currentpos = (long) (1000000 * (packet->pts * ((float) ctx->pFormatCtx->streams[ctx->audId]->time_base.num / ctx->pFormatCtx->streams[ctx->audId]->time_base.den)));
-
-					
-				
 				playaudio_audren(ctx->audCtx,ctx->resampler, packet, aframe, ctx->pmvis);
-			
-				
-					
 			}
 		audrvUpdate(&m_driver);
 		av_packet_unref(packet);
