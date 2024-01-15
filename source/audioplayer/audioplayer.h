@@ -9,6 +9,8 @@
 #include "nxmp-gfx.h"
 #include "stb_image.h"
 
+#include "iniParser.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,6 +57,7 @@ typedef struct {
 	long currentpos = 0;
 	long duration = 0;
 	int seek = 0;
+	int seekabs = 0;
 	bool pause = false;
 	int audiodriver;
 	std::mutex lock_mutex;
@@ -72,13 +75,14 @@ typedef struct{
 
 class CAudioPlayer{
 public:
-	CAudioPlayer(int _audiodriver,int visW = 1280,int visH = 720);
+	CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_struct _audioconfig);
 	~CAudioPlayer();
 	bool LoadFile(std::string filename);
 	void Play();
 	void Pause();
 	void Stop();
 	void Seek(int seconds);
+	void SeekAbs(int seconds);
 	
 	bool Running();
 	bool isPaused();
@@ -100,7 +104,8 @@ public:
 	void NextVisPreset();
 	void PrevVisPreset();
 	std::string getCurrentPlaylistItem();
-	void ViewSpectrum();
+	void ToogleVis();
+	bool VisEnabled();
 	
 	
 	
@@ -131,6 +136,8 @@ private:
 
 
 	unsigned int bitrate;
+	
+	audioplayerconfig_struct audioconfig;
 	
 	
 };

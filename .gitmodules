@@ -1,3 +1,6 @@
 [submodule "libs/imgui"]
 	path = libs/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "libs/mINI"]
+	path = libs/mINI
+	url = https://github.com/metayeti/mINI

@@ -42,13 +42,53 @@ const int m_samples_per_frame = AUDREN_SAMPLES_PER_FRAME_48KHZ;
 const int m_latency = 5;
 
 
+CAudioPlayer::~CAudioPlayer(){
+	
+	if(nxmpaudioctx.running){
+		nxmpaudioctx.exit = true;
+		threadWaitForExit(&t0);
+		threadClose(&t0);
+	}
+	
+#ifdef HAVE_SDL
+	if(audiodriver == 0){
+		SDL_CloseAudioDevice(nxmpaudioctx.auddev);
+	}
+#endif
 
+	if(audiodriver == 1){
+		if (m_decoded_buffer) {
+			free(m_decoded_buffer);
+			m_decoded_buffer = nullptr;
+		}
+		
+		if (mempool_ptr) {
+			free(mempool_ptr);
+			mempool_ptr = nullptr;
+		}
+		
+		if (m_inited_driver) {
+			m_inited_driver = false;
+			audrvVoiceStop(&m_driver, 0);
+			audrvClose(&m_driver);
+			audrenExit();
+		}
+    }
+	if(fileloaded){
+		avcodec_free_context(&nxmpaudioctx.audCtx);
+		avformat_close_input(&nxmpaudioctx.pFormatCtx);
+		avformat_free_context(nxmpaudioctx.pFormatCtx);
+	}
+	delete nxmpaudioctx.pmvis;
+	
+}
 
-CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH){
+CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_struct _audioconfig){
 	audiodriver = _audiodriver;
 	nxmpaudioctx.audiodriver = _audiodriver;
+	audioconfig = _audioconfig;
 	
-	nxmpaudioctx.pmvis = new CProjectMVis(visW,visH,"/switch/nxmp/presets/milk/","/switch/nxmp/presets/Textures/");
+	nxmpaudioctx.pmvis = new CProjectMVis(visW,visH,_audioconfig.milkpresetspath,_audioconfig.milktexturespath);
 	
 #ifdef HAVE_SDL
 	if(_audiodriver == 0){
@@ -349,9 +389,12 @@ void CAudioPlayer::PrevVisPreset(){
 	nxmpaudioctx.pmvis->PrevVisPreset();
 }
 
-void CAudioPlayer::ViewSpectrum(){
-	spectrumvis = true;
-	nxmpaudioctx.pmvis->ViewSpectrum();
+void CAudioPlayer::ToogleVis(){
+	nxmpaudioctx.pmvis->ToogleVis();
+}
+
+bool CAudioPlayer::VisEnabled(){
+	return nxmpaudioctx.pmvis->VisEnabled();
 }
 
 std::string CAudioPlayer::getCurrentPlaylistItem(){
@@ -400,44 +443,8 @@ void CAudioPlayer::Seek(int seconds) {
     nxmpaudioctx.seek = seconds;
 }
 
-CAudioPlayer::~CAudioPlayer(){
-	
-	if(nxmpaudioctx.running){
-		nxmpaudioctx.exit = true;
-		threadWaitForExit(&t0);
-		threadClose(&t0);
-	}
-	
-#ifdef HAVE_SDL
-	if(audiodriver == 0){
-		SDL_CloseAudioDevice(nxmpaudioctx.auddev);
-	}
-#endif
-
-	if(audiodriver == 1){
-		if (m_decoded_buffer) {
-			free(m_decoded_buffer);
-			m_decoded_buffer = nullptr;
-		}
-		
-		if (mempool_ptr) {
-			free(mempool_ptr);
-			mempool_ptr = nullptr;
-		}
-		
-		if (m_inited_driver) {
-			m_inited_driver = false;
-			audrvVoiceStop(&m_driver, 0);
-			audrvClose(&m_driver);
-			audrenExit();
-		}
-    }
-	avcodec_free_context(&nxmpaudioctx.audCtx);
-    avformat_close_input(&nxmpaudioctx.pFormatCtx);
-    avformat_free_context(nxmpaudioctx.pFormatCtx);
-	
-	delete nxmpaudioctx.pmvis;
-	
+void CAudioPlayer::SeekAbs(int seconds){
+	nxmpaudioctx.seekabs = seconds;
 }
 
 void SDLAudioThread(void *arg) {
@@ -456,6 +463,13 @@ void SDLAudioThread(void *arg) {
 			if(ffres <0)break;
 			
 	
+	
+			if(ctx->seekabs!=0){
+				int64_t m_target_ts = av_rescale_q(ctx->seekabs * AV_TIME_BASE, AV_TIME_BASE_Q, ctx->pFormatCtx->streams[ctx->audId]->time_base);
+				avcodec_flush_buffers(ctx->audCtx);
+				av_seek_frame(ctx->pFormatCtx, packet->stream_index, m_target_ts, 0);
+				ctx->seekabs = 0;
+			}
 			
 			
             if(ctx->seek!=0){
@@ -506,6 +520,14 @@ void AudrenAudioThread(void *arg) {
 				
 			int ffres = av_read_frame(ctx->pFormatCtx, packet);
 			if(ffres <0)break;
+			
+			if(ctx->seekabs!=0){
+				int64_t m_target_ts = av_rescale_q(ctx->seekabs * AV_TIME_BASE, AV_TIME_BASE_Q, ctx->pFormatCtx->streams[ctx->audId]->time_base);
+				avcodec_flush_buffers(ctx->audCtx);
+				av_seek_frame(ctx->pFormatCtx, packet->stream_index, m_target_ts, 0);
+				ctx->seekabs = 0;
+			}
+			
 			
             if(ctx->seek!=0){
 				int seconds = ctx->currentpos/1000000+ctx->seek;
@@ -582,12 +604,10 @@ void playaudio_sdl(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AV
                                              1);
 				
 				
-				
-				unsigned int samples =  audioframe->linesize[0]/sizeof(float)/2;
-				//projectm_pcm_add_float(_projectMHandle, reinterpret_cast<float*>(audioframe->data[0]), samples,
-                //           PROJECTM_STEREO);
-				pmvis->AddFloat(reinterpret_cast<float*>(audioframe->data[0]), samples);
-				
+				if(pmvis->VisEnabled()){
+					unsigned int samples =  audioframe->linesize[0]/sizeof(float)/2;
+					pmvis->AddFloat(reinterpret_cast<float*>(audioframe->data[0]), samples);
+				}
 				
 				SDL_QueueAudio(auddev, 
                                audioframe->data[0], 
@@ -648,10 +668,10 @@ void playaudio_audren(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt,
 	
 
 				
-				
-				unsigned int samples =  audioframe->linesize[0]/sizeof(int16_t)/2;
-				pmvis->AddInt16(reinterpret_cast<int16_t*>(audioframe->data[0]),samples);
-				
+				if(pmvis->VisEnabled()){
+					unsigned int samples =  audioframe->linesize[0]/sizeof(int16_t)/2;
+					pmvis->AddInt16(reinterpret_cast<int16_t*>(audioframe->data[0]),samples);
+				}
 				
 				write_audio(audioframe->data[0],audioframe->linesize[0]);
 	

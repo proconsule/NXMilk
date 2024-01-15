@@ -50,6 +50,9 @@ typedef struct {
 	/* Player Icons */
 	Tex PlayIcon;
 	Tex PauseIcon;
+	Tex FFIcon;
+	Tex RewIcon;
+	
 	Tex StopIcon;
 	Tex MuteIcon;
 	Tex VolumeIcon;

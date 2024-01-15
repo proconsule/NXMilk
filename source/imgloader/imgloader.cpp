@@ -39,6 +39,10 @@ CImgLoader::CImgLoader(std::string basepath){
 	
 	TxtLoadFromFile(basepath+"/play.png",&icons.PlayIcon.id,&icons.PlayIcon.width,&icons.PlayIcon.height);
 	TxtLoadFromFile(basepath+"/pause.png",&icons.PauseIcon.id,&icons.PauseIcon.width,&icons.PauseIcon.height);
+	TxtLoadFromFile(basepath+"/ff.png",&icons.FFIcon.id,&icons.FFIcon.width,&icons.FFIcon.height);
+	TxtLoadFromFile(basepath+"/rew.png",&icons.RewIcon.id,&icons.RewIcon.width,&icons.RewIcon.height);
+	
+	
 	
 	/*
 	Utility::TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);

@@ -28,6 +28,7 @@
 #include "imgloader.h"
 
 #include "usbfs.h"
+#include "iniParser.h"
 
 #define is_bit_set(val, bit_no) (((val) >> (bit_no)) & 1)
 
@@ -39,6 +40,9 @@ GLFWwindow *window;
 
 CAudioPlayer * audioplayer;
 CImgLoader * imgloader;
+
+CIniParser* configini;
+
 
 float multiplyRes = 1.0f;
 bool isHandheld = true;
@@ -86,6 +90,9 @@ main(int argc, const char* const* argv) {
 		appletUnlockExit();
 		return 0;
 	}
+	
+	
+	configini = new CIniParser("NXMilk.ini");
 	
 	
 	
@@ -137,13 +144,14 @@ main(int argc, const char* const* argv) {
 	
 	imgloader = new CImgLoader("romfs:");
 
-	audioplayer = new CAudioPlayer(1);
+	audioplayer = new CAudioPlayer(1,1280.0f*multiplyRes,720.0f*multiplyRes,configini->getAudioPlayerConfig());
 	
 	fsbrowser = new CFSBrowser("");
 	nxmpgfx::updateSplash(100);
 
+	
 
-	fsbrowser->DirList("/switch/nxmp",false,audioextensions);
+	fsbrowser->DirList(configini->getStartPath(),false,audioextensions);
 
 #ifdef __SWITCH__	
 
@@ -168,7 +176,7 @@ main(int argc, const char* const* argv) {
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_Y)){
 			if(audioplayer->Running()){
-				audioplayer->ViewSpectrum();
+				audioplayer->ToogleVis();
 			}else{
 				if(MyUSBMount == nullptr){
 					MyUSBMount = new USBMounter();
@@ -227,7 +235,7 @@ main(int argc, const char* const* argv) {
 		nxmpgfx::Render_PreMPV();
 		
 		
-		if(audioplayer->Running()){
+		if(audioplayer->Running() && audioplayer->VisEnabled()){
 			audioplayer->DrawProjectM();
 		}
 		

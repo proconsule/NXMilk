@@ -1,8 +1,14 @@
 #include "playerOSD.h"
 
 #include <iomanip>
+#include "audioplayer.h"
 
 extern float multiplyRes;
+extern CAudioPlayer * audioplayer;
+
+
+double relseek = 0.0f;
+bool mouseoverPos = false;
 
 namespace playerOSD {
 	
@@ -57,8 +63,47 @@ namespace playerOSD {
 		ImVec2 backp1 = ImVec2(10.0f,720.0f*multiplyRes-120.0f*multiplyRes);
 		ImVec2 backp2 = ImVec2(backp1.x+barsize.x,backp1.y+barsize.y);
 		
+		
+		ImVec2 mousePositionAbsolute = ImGui::GetMousePos();
+		
+		
+		
+		
 		ImVec2 posp1 = ImVec2(backp1.x+xpos,backp1.y);
 		ImVec2 posp2 = ImVec2(posp1.x+30.0f*multiplyRes,backp2.y);
+		
+		
+		
+		
+		
+		if(mouseoverPos){
+			
+			posp1 = ImVec2(mousePositionAbsolute.x-15.0f,backp1.y);
+			posp2 = ImVec2(posp1.x+30.0f*multiplyRes,backp2.y);
+			
+			
+			posp1.x=posp1.x-5.0f;
+			posp1.y=posp1.y-5.0f;
+			posp2.x=posp2.x+5.0f;
+			posp2.y=posp2.y+5.0f;
+			relseek = posp1.x;
+			
+		}
+		
+		
+		if(ImGui::IsMouseDown(ImGuiMouseButton_Left)){
+			if(mousePositionAbsolute.x>=posp1.x && mousePositionAbsolute.x<=posp2.x){
+				if(mousePositionAbsolute.y>=posp1.y && mousePositionAbsolute.y<=posp2.y){
+					
+					mouseoverPos = true;
+				}
+			}
+		}else if(mouseoverPos){
+			mouseoverPos = false;
+			int dstsec =  (relseek*totoalsec)/(1280.0f*multiplyRes);
+			audioplayer->SeekAbs(dstsec);
+			relseek = 0.0f;
+		}
 		
 		ImVec2 posptextcur = ImVec2(backp1.x +10.0f*multiplyRes,backp1.y-curpostextsize.y-10.0f*multiplyRes);
 		

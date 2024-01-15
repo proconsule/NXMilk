@@ -28,12 +28,13 @@ CProjectMVis::CProjectMVis(unsigned int _width,unsigned int _height,std::string 
 	projectm_playlist_set_position(playlist, 0, true);
 }
 
-	projectm_handle CProjectMVis::getHandle(){
-		return projectM;
-	}
-	projectm_playlist_handle CProjectMVis::getPlaylistHandle(){
-		return playlist;
-	}
+projectm_handle CProjectMVis::getHandle(){
+	return projectM;
+}
+
+projectm_playlist_handle CProjectMVis::getPlaylistHandle(){
+	return playlist;
+}
 
 CProjectMVis::~CProjectMVis(){
 	projectm_playlist_destroy(playlist);
@@ -66,9 +67,12 @@ void CProjectMVis::PrevVisPreset(){
 	projectm_playlist_play_previous(playlist, true);
 }
 
-void CProjectMVis::ViewSpectrum(){
-	projectm_load_preset_file(projectM,"romfs:/presets/milk/spectrum.milk",false);
-	
+void CProjectMVis::ToogleVis(){
+	vis_enabled = !vis_enabled;
+}
+
+bool CProjectMVis::VisEnabled(){
+	return vis_enabled;
 }
 
 std::vector<std::string> CProjectMVis::getPlaylistItems(){
@@ -84,8 +88,11 @@ std::vector<std::string> CProjectMVis::getPlaylistItems(){
 }
 
 std::string CProjectMVis::getCurrentPlaylistItem(){
-	std::string fullpath = projectm_playlist_item(playlist,projectm_playlist_get_position(playlist));
-	return fullpath.substr(fullpath.find_last_of("/")+1);	
+	if(projectm_playlist_size(playlist) > 0){
+		std::string fullpath = projectm_playlist_item(playlist,projectm_playlist_get_position(playlist));
+		return fullpath.substr(fullpath.find_last_of("/")+1);	
+	}
+	return "";
 }
 
 

@@ -25,7 +25,8 @@ public:
 	void NextVisPreset();
 	void PrevVisPreset();
 	
-	void ViewSpectrum();
+	void ToogleVis();
+	bool VisEnabled();
 	
 	std::vector<std::string> getPlaylistItems();
 	std::string getCurrentPlaylistItem();
@@ -39,6 +40,8 @@ private:
 	
 	std::string milkdir;
 	std::string texturedir;
+	
+	bool vis_enabled = true;
 	
 };
 
