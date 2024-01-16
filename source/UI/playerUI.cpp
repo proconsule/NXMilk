@@ -224,6 +224,55 @@ namespace Windows {
 		draw_list->AddImage((void*)(intptr_t)imgloader->icons.RewIcon.id,rewpos1_n,rewpos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
 		draw_list->AddImage((void*)(intptr_t)imgloader->icons.RewIcon.id,rewpos1,rewpos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
 				
+
+
+		
+		ImVec2 prevpos1 = rewpos1;
+		prevpos1.x = prevpos1.x - 60.0f*multiplyRes - 10.0f*multiplyRes;
+		prevpos1.y = playpausepos1.y + 10.0f*multiplyRes;
+		
+		ImVec2 prevpos2 = prevpos1;
+		prevpos2.x = prevpos2.x+40.0f*multiplyRes;
+		prevpos2.y = prevpos2.y+40.0f*multiplyRes;
+		
+		ImVec2 prevpos1_n = ImVec2(prevpos1.x,prevpos1.y+2.0f);
+		ImVec2 prevpos2_n = ImVec2(prevpos2.x,prevpos2.y+2.0f);
+
+
+		ImGui::SetCursorPos(ImVec2(prevpos1.x,prevpos1.y-10.0f*multiplyRes));
+		if (ImGui::Selectable("##Prevbut", false ,0,ImVec2(60*multiplyRes, 60*multiplyRes))){
+				
+		}
+		
+		isItemHovered = ImGui::IsItemHovered();
+		
+		draw_list->AddImage((void*)(intptr_t)imgloader->icons.PrevIcon.id,prevpos1_n,prevpos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
+		draw_list->AddImage((void*)(intptr_t)imgloader->icons.PrevIcon.id,prevpos1,prevpos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
+		
+		
+		ImVec2 nextpos1 = ffpos1;
+		nextpos1.x = nextpos1.x + 60.0f*multiplyRes + 10.0f*multiplyRes;
+		nextpos1.y = playpausepos1.y + 10.0f*multiplyRes;
+		
+		ImVec2 nextpos2 = nextpos1;
+		nextpos2.x = nextpos2.x+40.0f*multiplyRes;
+		nextpos2.y = nextpos2.y+40.0f*multiplyRes;
+		
+		ImVec2 nextpos1_n = ImVec2(nextpos1.x,nextpos1.y+2.0f);
+		ImVec2 nextpos2_n = ImVec2(nextpos2.x,nextpos2.y+2.0f);
+
+
+		ImGui::SetCursorPos(ImVec2(nextpos1.x,nextpos1.y-10.0f*multiplyRes));
+		if (ImGui::Selectable("##Nextbut", false ,0,ImVec2(60*multiplyRes, 60*multiplyRes))){
+				
+		}
+		
+		isItemHovered = ImGui::IsItemHovered();
+		
+		draw_list->AddImage((void*)(intptr_t)imgloader->icons.NextIcon.id,nextpos1_n,nextpos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
+		draw_list->AddImage((void*)(intptr_t)imgloader->icons.NextIcon.id,nextpos1,nextpos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
+		
+		
 		
 		
 		ImGui::PopStyleColor(5);

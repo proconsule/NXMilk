@@ -10,11 +10,38 @@ This project started as a test suite for new audio player for NXMP
 
 NXMilk is coded by proconsule
 
+
+
+Features
+-----
+- MP3 support (with ID3 tag support)
+- OGG support (with metadata support if present)
+- FLAC support (with metadata support if present)
+- Vis using projectM library
+- Can read from SD card and from USB storage
+
+
 Installation 
 ----
 - Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
-- Copy milk files in /switch/nxmp/presets/milk/
-- Copy texture files in /switch/nxmp/presets/Textures/
+- (OPTIONAL) Copy milk files in /switch/NXMilk/presets/milk/
+- (OPTIONAL) Copy texture files in /switch/NXMilk/presets/Textures/
+
+
+Edit Config file NXMilk.ini
+
+```
+[AudioPlayer]
+startpath = /switch/nxmp
+milkpresetspath = /switch/NXMilk/presets/milk/
+milktexturespath = /switch/NXMilk/presets/Textures/
+interfacehidesec = 10
+usebuitinpresets = true
+```
+
+NXMilk has many builtin presets. the can be disabled setting to false the usebuitinpresets option
+
+
 
 Presets
 ----

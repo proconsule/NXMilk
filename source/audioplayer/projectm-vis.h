@@ -11,7 +11,7 @@
 
 class CProjectMVis{
 public:
-	CProjectMVis(unsigned int _width,unsigned int _height,std::string _milkdir = "",std::string _texturedir = "");
+	CProjectMVis(unsigned int _width,unsigned int _height,std::string _milkdir = "",std::string _texturedir = "",bool usebuiltin = true);
 	~CProjectMVis();
 	
 	projectm_handle getHandle();

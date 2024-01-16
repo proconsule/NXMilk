@@ -12,6 +12,7 @@ typedef struct{
 	std::string milkpresetspath = "/switch/NXMilk/presets/milk/";
 	std::string milktexturespath = "/switch/NXMilk/presets/Textures/";
 	int interfacehidesec = 10;
+	bool usebuitinpresets = true;
 	
 	
 }audioplayerconfig_struct;

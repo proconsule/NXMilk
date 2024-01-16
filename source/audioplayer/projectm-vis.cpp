@@ -2,7 +2,7 @@
 
 
 
-CProjectMVis::CProjectMVis(unsigned int _width,unsigned int _height,std::string _milkdir,std::string _texturedir){
+CProjectMVis::CProjectMVis(unsigned int _width,unsigned int _height,std::string _milkdir,std::string _texturedir,bool usebuiltin){
 	width = _width;
 	height = _height;
 	projectM = projectm_create();
@@ -14,16 +14,31 @@ CProjectMVis::CProjectMVis(unsigned int _width,unsigned int _height,std::string 
 	milkdir = _milkdir;
 	texturedir = _texturedir;
 	
-	if (!texturedir.empty())
-        {
-            const char* texturePathList[1]{&texturedir[0]};
-            projectm_set_texture_search_paths(projectM, texturePathList, 1);
-        }
+	if (!texturedir.empty()){
+		if(usebuiltin){
+			const char* texturePathList[2]{&texturedir.c_str()[0],"romfs:/presets/Textures/"};
+			projectm_set_texture_search_paths(projectM, texturePathList, 2);
+		}else{
+			const char* texturePathList[1]{&texturedir.c_str()[0]};
+			projectm_set_texture_search_paths(projectM, texturePathList, 1);
+		}
+		
+	}else{
+		const char* texturePathList[1]{"romfs:/presets/Textures/"};
+		projectm_set_texture_search_paths(projectM, texturePathList, 1);
+	}
 	
 	if (!milkdir.empty())
 	{
 		projectm_playlist_add_path(playlist, milkdir.c_str(), true, false);
+		if(usebuiltin){
+			projectm_playlist_add_path(playlist, "romfs:/presets/milk/", true, false);
+		}
 		projectm_playlist_sort(playlist, 0, projectm_playlist_size(playlist), SORT_PREDICATE_FILENAME_ONLY, SORT_ORDER_ASCENDING);
+	}else{
+		if(usebuiltin){
+			projectm_playlist_add_path(playlist, "romfs:/presets/milk/", true, false);
+		}
 	}
 	projectm_playlist_set_position(playlist, 0, true);
 }

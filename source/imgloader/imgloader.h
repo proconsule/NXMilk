@@ -52,6 +52,8 @@ typedef struct {
 	Tex PauseIcon;
 	Tex FFIcon;
 	Tex RewIcon;
+	Tex PrevIcon;
+	Tex NextIcon;
 	
 	Tex StopIcon;
 	Tex MuteIcon;

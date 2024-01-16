@@ -13,6 +13,7 @@ extern bool USBDialog;
 extern std::vector<std::string> audioextensions;
 
 
+
 namespace Windows {
 	
 	std::string removeLastSlash(const std::string &string) {
@@ -58,6 +59,7 @@ namespace Windows {
 		Windows::SetupMainWindow();
 		if (ImGui::Begin("USB Devices", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 			
+			
 			static int selected = -1;
 			if(MyUSBMount != nullptr){	
 				std::vector<usb_devices> thislist = MyUSBMount->mounted_devs;
@@ -70,7 +72,7 @@ namespace Windows {
 					}
 					ImGui::SameLine();
 					
-					ImGui::Text("%s",MyUSBMount->mounted_devs[n].fstype.c_str()/*,Utility::humanSize(usbmounter->mounted_devs[n].capacity).c_str()*/);
+					ImGui::Text("%s %s",MyUSBMount->mounted_devs[n].fstype.c_str(),humanSize(MyUSBMount->mounted_devs[n].capacity).c_str());
 				}
 			}
 		
@@ -86,8 +88,10 @@ namespace Windows {
 		Windows::SetupMainWindow();
 	
 		//std::vector<std::string> thislist;
-	
-		if (ImGui::Begin("NXMilk", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
+		char apptitlechar[256] = {0};
+		//sprintf(apptitlechar,"NXMilk");
+		sprintf(apptitlechar,"NXMilk v%d.%d.%d",VERSION_MAJOR,VERSION_MINOR,VERSION_MICRO);
+		if (ImGui::Begin(apptitlechar, nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {0, 5});
 			//ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.26f, 0.59f, 0.98f, 0.00f));
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, nxmpgfx::NavHover_color);
