@@ -32,7 +32,7 @@ Edit Config file NXMilk.ini
 
 ```
 [AudioPlayer]
-startpath = /switch/nxmp
+startpath = /switch/NXMilk
 milkpresetspath = /switch/NXMilk/presets/milk/
 milktexturespath = /switch/NXMilk/presets/Textures/
 interfacehidesec = 10
