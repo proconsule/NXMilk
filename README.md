@@ -36,10 +36,10 @@ startpath = /switch/NXMilk
 milkpresetspath = /switch/NXMilk/presets/milk/
 milktexturespath = /switch/NXMilk/presets/Textures/
 interfacehidesec = 10
-usebuitinpresets = true
+usebuiltinpreset = true
 ```
 
-NXMilk has many builtin presets. the can be disabled setting to false the usebuitinpresets option
+NXMilk has many builtin presets. the can be disabled setting to false the usebuiltinpreset option
 
 
 

@@ -63,8 +63,8 @@ void CIniParser::ReadConfig(){
 			audioplayerconfig.interfacehidesec = string_to_int(inidata.get("AudioPlayer").get("interfacehidesec"));
 		}
 		
-		if(inidata["AudioPlayer"].has("usebuitinpresets")){
-			audioplayerconfig.usebuitinpresets = string_to_bool(inidata.get("AudioPlayer").get("usebuitinpresets"));
+		if(inidata["AudioPlayer"].has("usebuiltinpreset")){
+			audioplayerconfig.usebuiltinpreset = string_to_bool(inidata.get("AudioPlayer").get("usebuiltinpreset"));
 		}
 	
 	}

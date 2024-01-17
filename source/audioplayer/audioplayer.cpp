@@ -88,7 +88,7 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_
 	nxmpaudioctx.audiodriver = _audiodriver;
 	audioconfig = _audioconfig;
 	
-	nxmpaudioctx.pmvis = new CProjectMVis(visW,visH,_audioconfig.milkpresetspath,_audioconfig.milktexturespath,_audioconfig.usebuitinpresets);
+	nxmpaudioctx.pmvis = new CProjectMVis(visW,visH,_audioconfig.milkpresetspath,_audioconfig.milktexturespath,_audioconfig.usebuiltinpreset);
 	
 #ifdef HAVE_SDL
 	if(_audiodriver == 0){
