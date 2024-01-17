@@ -21,6 +21,18 @@ Features
 - Vis using projectM library
 - Can read from SD card and from USB storage
 
+Button Mapping
+-----
+- ZL/ZR Prev/Next Preset
+- L/R Seek -/+ 5 seconds
+- B Stop
+- Y Disable projectM Vis
+- Limited Touch Support
+
+USB
+-----
+Press Y to toogle between SD Card and USB
+
 
 Installation 
 ----
@@ -40,7 +52,7 @@ interfacehidesec = 10
 usebuiltinpreset = true
 ```
 
-NXMilk has many builtin presets. the can be disabled setting to false the usebuiltinpreset option
+NXMilk has some builtin presets. Can be disabled setting to false the usebuiltinpreset option
 
 
 
