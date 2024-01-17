@@ -1,5 +1,6 @@
 NXMilk
 ======
+![Banner](docs/nxmilk_banner.jpg)
 
 NXMilk is a trivial audio player for Nintendo Switch.
 
