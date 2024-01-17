@@ -241,7 +241,14 @@ namespace Windows {
 
 		ImGui::SetCursorPos(ImVec2(prevpos1.x,prevpos1.y-10.0f*multiplyRes));
 		if (ImGui::Selectable("##Prevbut", false ,0,ImVec2(60*multiplyRes, 60*multiplyRes))){
-				
+			std::string prevfilename = fsbrowser->getPrevFile(audioplayer->getFileName());
+				if(!prevfilename.empty()){
+				std::string openfilename = fsbrowser->getCurrentPath()+"/"+prevfilename;
+				bool loaded = audioplayer->LoadFile(openfilename);
+				if(loaded){
+					audioplayer->Play();
+				}
+			}
 		}
 		
 		isItemHovered = ImGui::IsItemHovered();
@@ -264,7 +271,14 @@ namespace Windows {
 
 		ImGui::SetCursorPos(ImVec2(nextpos1.x,nextpos1.y-10.0f*multiplyRes));
 		if (ImGui::Selectable("##Nextbut", false ,0,ImVec2(60*multiplyRes, 60*multiplyRes))){
-				
+			std::string nextfilename = fsbrowser->getNextFile(audioplayer->getFileName());
+			if(!nextfilename.empty()){
+				std::string openfilename = fsbrowser->getCurrentPath()+"/"+nextfilename;
+				bool loaded = audioplayer->LoadFile(openfilename);
+				if(loaded){
+					audioplayer->Play();
+				}
+			}	
 		}
 		
 		isItemHovered = ImGui::IsItemHovered();

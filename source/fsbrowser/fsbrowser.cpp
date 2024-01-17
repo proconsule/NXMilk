@@ -111,10 +111,12 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 							
 							
 							filelist.push_back(fsentry);
+							if(!S_ISDIR(fsentry.st.st_mode)){
+								audiofilelist.push_back(fsentry);
+							}
 							
 						}
 						
-					
 						closedir(dir);
 						std::sort(filelist.begin(), filelist.end(), SortNameAsc);
 						filelist.erase(
@@ -126,6 +128,20 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 								}
 								return !S_ISDIR(file.st.st_mode);
 						}), filelist.end());
+						
+						
+						std::sort(audiofilelist.begin(), audiofilelist.end(), SortNameAsc);
+						audiofilelist.erase(
+							std::remove_if(audiofilelist.begin(), audiofilelist.end(), [extensions](const fsentry_struct &file) {
+								for (auto &ext : extensions) {
+									if (endsWith(file.filename, ext, false)) {
+										return false;
+									}
+								}
+								return !S_ISDIR(file.st.st_mode);
+						}), audiofilelist.end());
+						
+						
 					}
 				
 			}
@@ -140,6 +156,44 @@ std::vector<fsentry_struct> CFSBrowser::getCurrList(){
 	
 std::string CFSBrowser::getCurrentPath(){
 	return currentpath;		
+}
+
+
+int CFSBrowser::FindFileIDX(std::string _filename){
+	for(int i=0;i<audiofilelist.size();i++){
+		if(_filename == audiofilelist[i].filename){
+			if(!S_ISDIR(audiofilelist[i].st.st_mode)){
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
+
+
+std::string CFSBrowser::getNextFile(std::string _filename){
+	int myidx = FindFileIDX(_filename);
+	
+	if(myidx!=-1){
+		if(myidx+1<audiofilelist.size()){
+			return audiofilelist[myidx+1].filename;
+		}
+	
+	}
+	
+	return "";
+}
+std::string CFSBrowser::getPrevFile(std::string _filename){
+	
+	int myidx = FindFileIDX(_filename);
+	if(myidx!=-1){
+		if(myidx-1>=0 ){
+			return audiofilelist[myidx-1].filename;
+		}
+	}
+	
+	return "";
 }
 
 std::string CFSBrowser::backDir(){

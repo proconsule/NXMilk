@@ -29,10 +29,17 @@ public:
 	std::string getCurrentPath();
 	std::string backDir();
 	
+	int FindFileIDX(std::string _filename);
+	std::string getNextFile(std::string _filename);
+	std::string getPrevFile(std::string _filename);
+	int currfileidx = 0;
+	
 private:
 	std::vector<fsentry_struct> filelist;
+	std::vector<fsentry_struct> audiofilelist;
 	std::string currentpath;
 	std::string basepath;
+	
 	
 };
 

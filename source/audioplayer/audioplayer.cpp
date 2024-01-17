@@ -206,8 +206,6 @@ bool CAudioPlayer::LoadFile(std::string filename){
 	}
 	
 	nxmpaudioctx.pFormatCtx = avformat_alloc_context();
-	AVDictionary *opts = NULL;
-	av_dict_set( &opts, "standard", "PAL", 0 );
 	int ret = avformat_open_input(&nxmpaudioctx.pFormatCtx, std::string(std::string("file:")+filename).c_str(), NULL, NULL);
 	
 	if (ret < 0) {
