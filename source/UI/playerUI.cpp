@@ -142,7 +142,7 @@ namespace Windows {
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0,0.0,0.0,0.0));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered , ImVec4(0.0,0.0,0.0,0.0));
 		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.0,0.0,0.0,0.0));
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(1.0,0.0,0.0,1.0));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0.0,0.0,0.0,0.0));
 		
 		
 		ImVec2 playpausepos1 = ImVec2((1280.0f*multiplyRes-60.0f*multiplyRes)/2.0f,720.0f*multiplyRes-75.0f*multiplyRes);
@@ -192,12 +192,12 @@ namespace Windows {
 		
 		
 		if(audioplayer->isPaused()){
-			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PauseIcon.id,playpausepos1_n,playpausepos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
-			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PauseIcon.id,playpausepos1,playpausepos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
-			
-		}else{
 			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PlayIcon.id,playpausepos1_n,playpausepos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
 			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PlayIcon.id,playpausepos1,playpausepos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
+			
+		}else{
+			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PauseIcon.id,playpausepos1_n,playpausepos2_n,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f,0.0f,0.0f,mytextcol.w)));
+			draw_list->AddImage((void*)(intptr_t)imgloader->icons.PauseIcon.id,playpausepos1,playpausepos2,ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImGui::ColorConvertFloat4ToU32(isItemHovered?myplaybutcolHover:myplaybutcol));
 			
 		}
 		

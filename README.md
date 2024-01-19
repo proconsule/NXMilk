@@ -19,6 +19,7 @@ Features
 - OGG support (with metadata support if present)
 - FLAC support (with metadata support if present)
 - Vis using projectM library
+- Support Japanese,Chinese,Korean Cyrilic fonts
 - Can read from SD card and from USB storage
 
 Button Mapping
@@ -68,5 +69,6 @@ Libraries used in this project
 - Many code parts are taken form NXMP https://github.com/proconsule/nxmp
 
 
-
-
+Screenshots
+-----
+![Screen1](docs/screenshot1.jpg)

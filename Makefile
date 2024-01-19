@@ -47,7 +47,7 @@ ROMFS	:=	romfs
 
 VERSION_MAJOR := 0
 VERSION_MINOR := 0
-VERSION_MICRO := 1
+VERSION_MICRO := 2
 
 APP_TITLE     := NXMilk
 APP_AUTHOR    := proconsule

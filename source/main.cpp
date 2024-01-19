@@ -170,6 +170,10 @@ main(int argc, const char* const* argv) {
 			Windows::UserActivity();
 		}
 		
+		if(is_bit_set(event_ret,nxmpgfx::BUT_DLEFT) || is_bit_set(event_ret,nxmpgfx::BUT_DRIGHT)){
+			Windows::UserActivity();
+		}
+		
 		
 		if(is_bit_set(event_ret,nxmpgfx::BUT_A)){
 			Windows::UserActivity();
