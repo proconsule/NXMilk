@@ -92,8 +92,8 @@ namespace playerOSD {
 		
 		
 		if(ImGui::IsMouseDown(ImGuiMouseButton_Left)){
-			if(mousePositionAbsolute.x>=posp1.x && mousePositionAbsolute.x<=posp2.x){
-				if(mousePositionAbsolute.y>=posp1.y && mousePositionAbsolute.y<=posp2.y){
+			if(mousePositionAbsolute.x>=posp1.x-5.0f && mousePositionAbsolute.x<=posp2.x+5.0f){
+				if(mousePositionAbsolute.y>=posp1.y-5.0f && mousePositionAbsolute.y<=posp2.y+5.0f){
 					
 					mouseoverPos = true;
 				}

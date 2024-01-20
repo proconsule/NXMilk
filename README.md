@@ -70,8 +70,8 @@ Libraries used in this project
 
 Thanks to
 -----
-spkatsi @GBATemp forum for icons,banner, testing and suggestions
-Djakku @GBATemp for testing and suggestions
+- spkatsi @GBATemp forum for icons,banner, testing and suggestions
+- Djakku @GBATemp for testing and suggestions
 
 Screenshots
 -----
