@@ -68,6 +68,10 @@ Libraries used in this project
 - projectM https://github.com/projectM-visualizer/projectm
 - Many code parts are taken form NXMP https://github.com/proconsule/nxmp
 
+Thanks to
+-----
+spkatsi @GBATemp forum for icons,banner, testing and suggestions
+Djakku @GBATemp for testing and suggestions
 
 Screenshots
 -----
