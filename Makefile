@@ -47,7 +47,7 @@ ROMFS	:=	romfs
 
 VERSION_MAJOR := 0
 VERSION_MINOR := 0
-VERSION_MICRO := 2
+VERSION_MICRO := 3
 
 APP_TITLE     := NXMilk
 APP_AUTHOR    := proconsule
@@ -71,7 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -DIMGUI_IMPL_OPENGL
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lprojectM-4 -lprojectM-4-playlist -lGLESv2 -lmpv `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lswscale -lavformat -lavfilter -lpostproc -lavcodec -lavutil -lswresample -lvorbis -logg -llzma -lopus -lvpx -lass -lharfbuzz -lfreetype -lfribidi  -lstdc++ -ldav1d -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lsmb2 -lssh2 -lnfs -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lexpat -llzma -lzstd -llz4 -lbz2 -lnx -lc -lz
+LIBS	:= -lprojectM-4 -lprojectM-4-playlist -lGLESv2 -lmpv `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lswscale -lavformat -lavfilter -lpostproc -lavcodec -lavutil -lswresample -llzma -lopus -lvpx -lass -lharfbuzz -lfreetype -lfribidi  -lstdc++ -ldav1d -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lopenmpt -lmpg123 -logg -lvorbis -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lsmb2 -lssh2 -lnfs -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lexpat -llzma -lzstd -llz4 -lbz2 -lnx -lc -lz
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
