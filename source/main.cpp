@@ -48,7 +48,7 @@ float multiplyRes = 1.0f;
 bool isHandheld = true;
 
 
-std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".mod",".okt",".xm",".s3m"};
+std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".mod",".okt",".xm",".s3m",".spc",".ay",".vgm",".gbs"};
 
 extern u32 __nx_applet_exit_mode;
 

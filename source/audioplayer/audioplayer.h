@@ -18,6 +18,30 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
+
+#include <libavfilter/avfilter.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+
+#include "libavutil/channel_layout.h"
+#include "libavutil/md5.h"
+#include "libavutil/mem.h"
+#include "libavutil/opt.h"
+#include "libavutil/samplefmt.h"
+
+#include "libavutil/avstring.h"
+#include "libavutil/channel_layout.h"
+#include "libavutil/eval.h"
+#include "libavutil/mathematics.h"
+#include "libavutil/pixdesc.h"
+#include "libavutil/imgutils.h"
+#include "libavutil/dict.h"
+#include "libavutil/fifo.h"
+#include "libavutil/parseutils.h"
+#include "libavutil/samplefmt.h"
+#include "libavutil/time.h"
+#include "libavutil/bprint.h"
+
 #ifdef __cplusplus
 }
 #endif
@@ -43,12 +67,16 @@ typedef struct {
 	
 	CProjectMVis * pmvis;
 	
+	
+	AVFilterGraph *graph;
+    AVFilterContext *src, *sink;
+	
 	size_t mempool_size;
 	void* mempool_ptr;
 	void* tmpdata_ptr;
 	size_t max_samples_datasize;
 	//AudioDriverWaveBuf wavebuf[2] = {0};
-	SwrContext *resampler;
+	SwrContext *resampler = nullptr;
 	int audId = -1;
 	int vidId = -1;
 	projectm* projectMHandle{nullptr};
