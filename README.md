@@ -20,14 +20,14 @@ Features
 - Support Japanese,Chinese,Korean Cyrilic fonts
 - Can read from SD card and from USB storage
 
-Supported Files
------
+### Supported Files
+
 - MP3 support (with ID3 tag support)
 - OGG support (with metadata support if present)
 - FLAC support (with metadata support if present)
 
-Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
-----
+### Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
+
 - Composer 667 (.667)
 - Composer 669 / UNIS 669 (.669)
 - ASYLUM Music Format / Advanced Music Format (.amf / .dmf)
@@ -71,8 +71,8 @@ Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
 - Mod's Grave (.wow)
 - Astroidea XMF (.xmf)
 
-Supported Files using libgme (https://github.com/mcfiredrill/libgme)
------
+### Supported Files using libgme (https://github.com/mcfiredrill/libgme)
+
 - AY        ZX Spectrum/Amstrad CPC
 - GBS       Nintendo Game Boy
 - GYM       Sega Genesis/Mega Drive
@@ -83,8 +83,7 @@ Supported Files using libgme (https://github.com/mcfiredrill/libgme)
 - SPC       Super Nintendo/Super Famicom
 - VGM/VGZ   Sega Master System/Mark III, Sega Genesis/Mega Drive,BBC Micro
 
-Supported Files using libmodplug (https://github.com/Konstanty/libmodplug)
------
+### Supported Files using libmodplug (https://github.com/Konstanty/libmodplug)
 - Nearly all the formats supported by libopenmpt
 - MIDI files (for better result you must use GUS patch file https://www.chocolate-doom.org/wiki/index.php/GUS) 
 
