@@ -75,8 +75,7 @@ typedef struct {
 	void* mempool_ptr;
 	void* tmpdata_ptr;
 	size_t max_samples_datasize;
-	//AudioDriverWaveBuf wavebuf[2] = {0};
-	SwrContext *resampler = nullptr;
+	
 	int audId = -1;
 	int vidId = -1;
 	projectm* projectMHandle{nullptr};
@@ -103,7 +102,7 @@ typedef struct{
 
 class CAudioPlayer{
 public:
-	CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_struct _audioconfig);
+	CAudioPlayer(int visW,int visH,audioplayerconfig_struct _audioconfig);
 	~CAudioPlayer();
 	bool LoadFile(std::string filename);
 	void Play();
@@ -142,20 +141,11 @@ public:
 	Tex AlbumArtTexture;
 	
 private:
-	//SDL_AudioDeviceID auddev;
-#ifdef HAVE_SDL
-	SDL_AudioSpec want, have;
-#endif
-	int audiodriver = 0;
+
 	nxmpaudioctx_struct nxmpaudioctx;
 	
-	//AVFormatContext *pFormatCtx;
-    //int vidId = -1, audId = -1;
-    double fpsrendering = 0.0;
-    //AVCodecContext *vidCtx, *audCtx;
-    //AVCodec *vidCodec, *audCodec;
-    //AVCodecParameters *vidpar, *audpar;
-	Thread t0;
+	double fpsrendering = 0.0;
+    Thread t0;
 	std::string loadedfilename;
 	
 	bool spectrumvis = false;

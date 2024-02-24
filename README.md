@@ -15,12 +15,79 @@ NXMilk is coded by proconsule
 
 Features
 -----
-- MP3 support (with ID3 tag support)
-- OGG support (with metadata support if present)
-- FLAC support (with metadata support if present)
+- Wide audio file format support (See below)
 - Vis using projectM library
 - Support Japanese,Chinese,Korean Cyrilic fonts
 - Can read from SD card and from USB storage
+
+Supported Files
+-----
+- MP3 support (with ID3 tag support)
+- OGG support (with metadata support if present)
+- FLAC support (with metadata support if present)
+
+Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
+----
+- Composer 667 (.667)
+- Composer 669 / UNIS 669 (.669)
+- ASYLUM Music Format / Advanced Music Format (.amf / .dmf)
+- Extreme’s Tracker / Velvet Studio (.ams)
+- Composer 670 / CDFM (.c67)
+- Digi Booster Pro (.dbm)
+- Digi Booster (.digi)
+- X-Tracker (.dmf)
+- DSIK (.dsm)
+- Dynamic Studio (.dsm)
+- Digital Symphony (.dsym)
+- Digital Tracker / Digital Home Studio (.dtm)
+- Farandole Composer (.far)
+- Davey W. Taylor’s FM Tracker (.fmt)
+- General Digital Music (.gdm)
+- Graoumf Tracker 1 (.gtk / .gt2)
+- Ice Tracker / SoundTracker 2.6 (.ice / .st26)
+- Imago Orpheus (.imf)
+- Impulse Tracker Project (.itp) – legacy OpenMPT format with instruments stored in external files rather than directly in the module
+- Jazz Jackrabbit 2 Music (.j2b)
+- SoundTracker and compatible (.m15 / .stk)
+- DigiTrakker (.mdl)
+- OctaMED (.med)
+- MO3 (.mo3)
+- MadTracker 2 (.mt2)
+- MultiTracker (.mtm)
+- Psycho Pinball / Micro Machines 2 music format (.mus)
+- Oktalyzer (.okt)
+- OggMod-compressed XM files (.oxm)
+- Epic Megagames MASI (.psm)
+- Disorder Tracker 2 (.plm)
+- ProTracker 3.6 IFF (.pt36)
+- PolyTracker (.ptm)
+- SoundFX / MultiMedia Sound (.sfx / .sfx2 / .mms)
+- Scream Tracker 2 (.stm)
+- Scream Tracker Music Interface Kit (.stx)
+- Soundtracker Pro II (.stp)
+- Symphonie / Symphonie Pro (.symmod)
+- UltraTracker (.ult)
+- Unreal Music (.umx) only from Unreal (Tournament 1), Deus Ex and Jazz Jackrabbit 3D
+- Mod's Grave (.wow)
+- Astroidea XMF (.xmf)
+
+Supported Files using libgme (https://github.com/mcfiredrill/libgme)
+-----
+- AY        ZX Spectrum/Amstrad CPC
+- GBS       Nintendo Game Boy
+- GYM       Sega Genesis/Mega Drive
+- HES       NEC TurboGrafx-16/PC Engine
+- KSS       MSX Home Computer/other Z80 systems (doesn't support FM sound)
+- NSF/NSFE  Nintendo NES/Famicom (with VRC 6, Namco 106, and FME-7 sound)
+- SAP       Atari systems using POKEY sound chip
+- SPC       Super Nintendo/Super Famicom
+- VGM/VGZ   Sega Master System/Mark III, Sega Genesis/Mega Drive,BBC Micro
+
+Supported Files using libmodplug (https://github.com/Konstanty/libmodplug)
+-----
+- Nearly all the formats supported by libopenmpt
+- MIDI files (for better result you must use GUS patch file https://www.chocolate-doom.org/wiki/index.php/GUS) 
+
 
 Button Mapping
 -----
@@ -40,6 +107,7 @@ Installation
 - Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
 - (OPTIONAL) Copy milk files in /switch/NXMilk/presets/milk/
 - (OPTIONAL) Copy texture files in /switch/NXMilk/presets/Textures/
+- (OPTIONAL) Copy timidity.conf and GUS patch files in /switch/NXMilk/timidity/
 
 
 Edit Config file NXMilk.ini
@@ -66,6 +134,9 @@ Libraries used in this project
 - FFMpeg https://ffmpeg.org/
 - ImGui https://github.com/ocornut/imgui
 - projectM https://github.com/projectM-visualizer/projectm
+- libopenmpt https://lib.openmpt.org/libopenmpt/
+- libgme https://github.com/mcfiredrill/libgme
+- libmodplug https://github.com/Konstanty/libmodplug
 - Many code parts are taken form NXMP https://github.com/proconsule/nxmp
 
 Thanks to

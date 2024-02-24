@@ -6,20 +6,12 @@
 #define BUFFER_COUNT 5
 
 
-void SDLAudioThread(void *arg);
 void AudrenAudioThread(void *arg);
 size_t append_audio(const void *buf, size_t size);
 void write_audio(const void* buf, size_t size);
 
 static const uint8_t m_sink_channels[] = { 0, 1 };
 ssize_t free_wavebuf_index();
-
-void playaudio_sdl(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AVFrame *frame,
-    SDL_AudioDeviceID auddev,CProjectMVis * pmvis);
-void playaudio_audren(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AVFrame *frame
-    ,CProjectMVis * pmvis);
-
-int audren_play_from_packet(SwrContext *resampler, AVFrame * decoded_frame,CProjectMVis * pmvis);
 
 s16* m_decoded_buffer = nullptr;
 void* mempool_ptr = nullptr;
@@ -59,13 +51,9 @@ CAudioPlayer::~CAudioPlayer(){
 		threadClose(&t0);
 	}
 	
-#ifdef HAVE_SDL
-	if(audiodriver == 0){
-		SDL_CloseAudioDevice(nxmpaudioctx.auddev);
-	}
-#endif
 
-	if(audiodriver == 1){
+
+	
 		if (m_decoded_buffer) {
 			free(m_decoded_buffer);
 			m_decoded_buffer = nullptr;
@@ -82,7 +70,7 @@ CAudioPlayer::~CAudioPlayer(){
 			audrvClose(&m_driver);
 			audrenExit();
 		}
-    }
+    
 	if(fileloaded){
 		avcodec_free_context(&nxmpaudioctx.audCtx);
 		avformat_close_input(&nxmpaudioctx.pFormatCtx);
@@ -92,36 +80,12 @@ CAudioPlayer::~CAudioPlayer(){
 	
 }
 
-CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_struct _audioconfig){
-	audiodriver = _audiodriver;
-	nxmpaudioctx.audiodriver = _audiodriver;
+CAudioPlayer::CAudioPlayer(int visW,int visH,audioplayerconfig_struct _audioconfig){
+	
 	audioconfig = _audioconfig;
 	
 	nxmpaudioctx.pmvis = new CProjectMVis(visW,visH,_audioconfig.milkpresetspath,_audioconfig.milktexturespath,_audioconfig.usebuiltinpreset);
 	
-#ifdef HAVE_SDL
-	if(_audiodriver == 0){
-		SDL_Init(SDL_INIT_AUDIO);
-		SDL_zero(want);
-		SDL_zero(have);
-		want.channels = 2;
-		want.freq = 48000;
-		want.format = AUDIO_F32;
-		want.samples = want.freq/60;
-		nxmpaudioctx.auddev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-		//nxmpaudioctx.projectMHandle = _projectMHandle;
-		SDL_PauseAudioDevice(nxmpaudioctx.auddev, 0);
-		if (!nxmpaudioctx.auddev) {
-			device_ready = false;
-		}else{
-			device_ready = true;
-		}
-	}
-#endif
-	if(_audiodriver == 1){
-		//bool initedAudren = false;
-		//bool initedDriver = false;
-		//nxmpaudioctx.projectMHandle = _projectMHandle;
 		static const AudioRendererConfig arConfig =
 		{
 			.output_rate     = AudioRendererOutputRate_48kHz,
@@ -188,7 +152,7 @@ CAudioPlayer::CAudioPlayer(int _audiodriver,int visW,int visH,audioplayerconfig_
 		m_inited_driver = true;
 		device_ready = true;	
 		
-	}
+	
 }
 
 void CAudioPlayer::ClearID3(){
@@ -288,6 +252,8 @@ bool CAudioPlayer::LoadFile(std::string filename){
 			
 			
         }
+		
+		
 		if (localparam->codec_type == AVMEDIA_TYPE_VIDEO && !foundVideo) {
             nxmpaudioctx.vidCodec = localcodec;
             nxmpaudioctx.vidpar = localparam;
@@ -306,7 +272,7 @@ bool CAudioPlayer::LoadFile(std::string filename){
     }
 	
 	if(!foundAudio){
-		
+		printf("NO AUDIO TRACK\n");
 		return false;
 	}
 	
@@ -330,42 +296,10 @@ bool CAudioPlayer::LoadFile(std::string filename){
         return false;
     }
 	
-	if(audiodriver == 0){
-	nxmpaudioctx.resampler = swr_alloc_set_opts(NULL, 
-                                           AV_CH_LAYOUT_STEREO,
-                                           AV_SAMPLE_FMT_FLT,
-                                           48000,
-                                           nxmpaudioctx.audCtx->channel_layout,
-                                           nxmpaudioctx.audCtx->sample_fmt,
-                                           nxmpaudioctx.audCtx->sample_rate,
-                                           0, 
-                                           NULL);
-	}
 	
-	if(audiodriver == 1){
 	
-	/*
 	
-	nxmpaudioctx.resampler = swr_alloc_set_opts(NULL, 
-                                           AV_CH_LAYOUT_STEREO,
-                                           AV_SAMPLE_FMT_S16,
-                                           48000,
-                                           nxmpaudioctx.audCtx->channel_layout,
-                                           nxmpaudioctx.audCtx->sample_fmt,
-                                           nxmpaudioctx.audCtx->sample_rate,
-                                           0, 
-                                           NULL);
-	}
-	
-	swr_init(nxmpaudioctx.resampler);
-	*/
-	
-	//configure_audio_filters(&nxmpaudioctx,"Test Audio Filter",1);
-	
-		init_filter_graph(&nxmpaudioctx,&nxmpaudioctx.graph,&nxmpaudioctx.src,&nxmpaudioctx.sink);
-		//init_filters(&nxmpaudioctx,"aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo",nxmpaudioctx.graph);
-	}
-	
+	ret = init_filter_graph(&nxmpaudioctx,&nxmpaudioctx.graph,&nxmpaudioctx.src,&nxmpaudioctx.sink);
 	
 	
 	nxmpaudioctx.duration = (1000000 * ( nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->duration * ((float) nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->time_base.num / nxmpaudioctx.pFormatCtx->streams[nxmpaudioctx.audId]->time_base.den)));
@@ -377,12 +311,8 @@ bool CAudioPlayer::LoadFile(std::string filename){
 
 void CAudioPlayer::Play(){
 	nxmpaudioctx.pause = false;
-	if(audiodriver == 0){
-		threadCreate(&t0, SDLAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
-	}
-	if(audiodriver == 1){
-		threadCreate(&t0, AudrenAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
-	}
+	
+	threadCreate(&t0, AudrenAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
 	threadStart(&t0);
 }
 
@@ -470,63 +400,6 @@ void CAudioPlayer::SeekAbs(int seconds){
 	nxmpaudioctx.seekabs = seconds;
 }
 
-void SDLAudioThread(void *arg) {
-	
-	nxmpaudioctx_struct *ctx = (nxmpaudioctx_struct *)arg;
-	
-	AVFrame *aframe;
-    AVPacket *packet;
-	aframe = av_frame_alloc();
-    packet = av_packet_alloc();
-	ctx->running = true;
-	
-	while (!ctx->exit)
-        {
-			int ffres = av_read_frame(ctx->pFormatCtx, packet);
-			if(ffres <0)break;
-			
-	
-	
-			if(ctx->seekabs!=0){
-				int64_t m_target_ts = av_rescale_q(ctx->seekabs * AV_TIME_BASE, AV_TIME_BASE_Q, ctx->pFormatCtx->streams[ctx->audId]->time_base);
-				avcodec_flush_buffers(ctx->audCtx);
-				av_seek_frame(ctx->pFormatCtx, packet->stream_index, m_target_ts, 0);
-				ctx->seekabs = 0;
-			}
-			
-			
-            if(ctx->seek!=0){
-				int seconds = ctx->currentpos/1000000+ctx->seek;
-				int64_t m_target_ts = av_rescale_q(seconds * AV_TIME_BASE, AV_TIME_BASE_Q, ctx->pFormatCtx->streams[ctx->audId]->time_base);
-				avcodec_flush_buffers(ctx->audCtx);
-				if(ctx->seek>0){
-					av_seek_frame(ctx->pFormatCtx, packet->stream_index, m_target_ts, 0);
-			
-				}else{
-					av_seek_frame(ctx->pFormatCtx, packet->stream_index, m_target_ts, AVSEEK_FLAG_BACKWARD);
-			
-				}
-				ctx->seek = 0;
-				continue;
-			}
-			if (packet->stream_index == ctx->audId) {
-				ctx->currentpos = (long) (1000000 * (packet->pts * ((float) ctx->pFormatCtx->streams[ctx->audId]->time_base.num / ctx->pFormatCtx->streams[ctx->audId]->time_base.den)));
-
-					playaudio_sdl(ctx->audCtx,ctx->resampler, packet, aframe, ctx->auddev,ctx->pmvis);
-
-            }
-            av_packet_unref(packet);
-			while(ctx->pause && !ctx->exit){
-				svcSleepThread(1000);
-			}
-        }
-	av_packet_free(&packet);
-    av_frame_free(&aframe);
-	ctx->running = false;	
-}
-
-
-
 void AudrenAudioThread(void *arg) {
 	
 	nxmpaudioctx_struct *ctx = (nxmpaudioctx_struct *)arg;
@@ -574,20 +447,25 @@ void AudrenAudioThread(void *arg) {
 				
 				
 				int ret =  avcodec_send_packet(ctx->audCtx, packet);
-				if(ret <0)break;
+				if(ret <0){
+					printf("avcodec_send_packet %d\n",ret);
+					break;
+				}
 			
 				ret = avcodec_receive_frame(ctx->audCtx, aframe);
-				if(ret <0)break;
-				
+				if(ret == AVERROR(EAGAIN)){
+					continue;
+				}
+				if(ret <0){
+					printf("avcodec_receive_frame %d\n",ret);
+					break;
+				}
 				
 				int err = av_buffersrc_add_frame_flags(ctx->src, aframe,0);
 				 
 				 
 				 while ((err = av_buffersink_get_frame(ctx->sink, aframe_filt)) >= 0) {
 					/* now do something with our filtered frame */
-					//err = process_output(md5, frame);
-					//audren_play_from_packet(ctx->resampler,aframe,ctx->pmvis);
-					
 					
 					const int bps = av_get_bytes_per_sample(aframe_filt->format);
 					aframe_filt->linesize[0] = bps*2*aframe_filt->nb_samples;
@@ -599,11 +477,7 @@ void AudrenAudioThread(void *arg) {
 					}
 					
 				}
-				
-				
-				//audren_play_from_packet(ctx->resampler,aframe,ctx->pmvis);
-				
-				//playaudio_audren(ctx->audCtx,ctx->resampler, packet, aframe, ctx->pmvis);
+
 			}
 		audrvUpdate(&m_driver);
 		av_packet_unref(packet);
@@ -619,188 +493,6 @@ void AudrenAudioThread(void *arg) {
 	
 }
 
-
-void playaudio_sdl(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AVFrame *frame,
-    SDL_AudioDeviceID auddev,CProjectMVis * pmvis)
-{
-    if (avcodec_send_packet(ctx, pkt) < 0) {
-        perror("send packet");
-        return;
-    }
-    if (avcodec_receive_frame(ctx, frame) < 0) {
-        perror("receive frame");
-        return;
-    }
-	
-	
-	AVFrame *audioframe = av_frame_alloc();
-	int ret = 0;
-	int dst_samples = frame->channels * av_rescale_rnd(
-                                   swr_get_delay(resampler, frame->sample_rate)
-                                   + frame->nb_samples,
-                                   48000,
-                                   frame->sample_rate,               
-                                   AV_ROUND_UP);
-                uint8_t *audiobuf = NULL;
-                ret = av_samples_alloc(&audiobuf, 
-                                       NULL, 
-                                       1, 
-                                       dst_samples,
-                                       AV_SAMPLE_FMT_FLT, 
-                                       1);
-                dst_samples = frame->channels * swr_convert(
-                                                 resampler, 
-                                                 &audiobuf, 
-                                                 dst_samples,
-                                                 (const uint8_t**) frame->data, 
-                                                 frame->nb_samples);
-                ret = av_samples_fill_arrays(audioframe->data, 
-                                             audioframe->linesize, 
-                                             audiobuf,
-                                             1, 
-                                             dst_samples, 
-                                             AV_SAMPLE_FMT_FLT, 
-                                             1);
-				
-				
-				if(pmvis->VisEnabled()){
-					unsigned int samples =  audioframe->linesize[0]/sizeof(float)/2;
-					pmvis->AddFloat(reinterpret_cast<float*>(audioframe->data[0]), samples);
-				}
-				
-				SDL_QueueAudio(auddev, 
-                               audioframe->data[0], 
-                               audioframe->linesize[0]); 
-							   
-				
-				
-				while(SDL_GetQueuedAudioSize(auddev) > (unsigned int)audioframe->linesize[0]*2){
-					
-				}
-
-}
-
-int audren_play_from_packet(SwrContext *resampler, AVFrame * decoded_frame,CProjectMVis * pmvis)
-{
-	//SwrContext *resampler_test;
-	int64_t src_ch_layout, dst_ch_layout;
-	int src_rate, dst_rate;
-	uint8_t **src_data = NULL, **dst_data = NULL;
-	int src_nb_channels = 0, dst_nb_channels = 0;
-	int src_linesize, dst_linesize;
-	int src_nb_samples, dst_nb_samples, max_dst_nb_samples;
-	enum AVSampleFormat src_sample_fmt, dst_sample_fmt;
-	int dst_bufsize;
-	int ret;
-
-	src_nb_samples = decoded_frame->nb_samples;
-	src_linesize = (int) decoded_frame->linesize;
-	src_data = decoded_frame->data;
-
-	if (decoded_frame->channel_layout == 0) {
-		decoded_frame->channel_layout = av_get_default_channel_layout(decoded_frame->channels);
-	} 
-
-	src_rate = decoded_frame->sample_rate;
-	dst_rate = 48000;
-	src_ch_layout = decoded_frame->channel_layout;
-	dst_ch_layout = AV_CH_LAYOUT_STEREO;
-	src_sample_fmt = decoded_frame->format;
-	dst_sample_fmt = AV_SAMPLE_FMT_S16;
-
-	/*
-	av_opt_set_int(resampler_test, "in_channel_layout", src_ch_layout, 0);
-	av_opt_set_int(resampler_test, "out_channel_layout", dst_ch_layout,  0);
-	av_opt_set_int(resampler_test, "in_sample_rate", src_rate, 0);
-	av_opt_set_int(resampler_test, "out_sample_rate", dst_rate, 0);
-	av_opt_set_sample_fmt(resampler_test, "in_sample_fmt", src_sample_fmt, 0);
-	av_opt_set_sample_fmt(resampler_test, "out_sample_fmt", dst_sample_fmt,  0);
-	*/
-	/*
-	if(resampler==nullptr){
-		resampler = swr_alloc_set_opts(NULL, 
-											   AV_CH_LAYOUT_STEREO,
-											   AV_SAMPLE_FMT_S16,
-											   48000,
-											   src_ch_layout,
-											   src_sample_fmt,
-											   src_rate,
-											   0, 
-											   NULL);
-		if ((ret = swr_init(resampler)) < 0) {
-			fprintf(stderr, "Failed to initialize the resampling context\n");
-			return -1;
-		}
-		
-	}
-	*/
-		
-
-
-		/* initialize the resampling context */
-		
-		
-	
-
-	/* allocate source and destination samples buffers */
-	src_nb_channels = av_get_channel_layout_nb_channels(src_ch_layout);
-	ret = av_samples_alloc_array_and_samples(&src_data, &src_linesize, src_nb_channels, src_nb_samples, src_sample_fmt, 0);
-	if (ret < 0) {
-		fprintf(stderr, "Could not allocate source samples\n");
-		return -1;
-	}
-
-	/* compute the number of converted samples: buffering is avoided
-	 * ensuring that the output buffer will contain at least all the
-	 * converted input samples */
-	max_dst_nb_samples = dst_nb_samples = av_rescale_rnd(src_nb_samples, dst_rate, src_rate, AV_ROUND_UP);
-
-	/* buffer is going to be directly written to a rawaudio file, no alignment */
-	dst_nb_channels = av_get_channel_layout_nb_channels(dst_ch_layout);
-	ret = av_samples_alloc_array_and_samples(&dst_data, &dst_linesize, dst_nb_channels, dst_nb_samples, dst_sample_fmt, 0);
-	if (ret < 0) {
-		fprintf(stderr, "Could not allocate destination samples\n");
-		return -1;
-	}
-
-	/* compute destination number of samples */
-	dst_nb_samples = av_rescale_rnd(swr_get_delay(resampler, src_rate) + src_nb_samples, dst_rate, src_rate, AV_ROUND_UP);
-
-	/* convert to destination format */
-	ret = swr_convert(resampler, dst_data, dst_nb_samples, (const uint8_t **)decoded_frame->data, src_nb_samples);
-	if (ret < 0) {
-		fprintf(stderr, "Error while converting\n");
-		return -1;
-	}
-
-	dst_bufsize = av_samples_get_buffer_size(&dst_linesize, dst_nb_channels, ret, dst_sample_fmt, 1);
-	if (dst_bufsize < 0) {
-		fprintf(stderr, "Could not get sample buffer size\n");
-		return -1;
-	}
-
-	if(pmvis->VisEnabled()){
-		unsigned int samples =  dst_bufsize/sizeof(int16_t)/2;
-		pmvis->AddInt16(reinterpret_cast<int16_t*>(dst_data[0]),samples);
-	}
-
-	write_audio(dst_data[0],dst_bufsize);
-	//memcpy(is->audio_buf, dst_data[0], dst_bufsize);
-
-	if (src_data) {
-		av_freep(&src_data[0]);
-	}
-	av_freep(&src_data);
-
-	if (dst_data) {
-		av_freep(&dst_data[0]);
-	}
-	av_freep(&dst_data);
-
-	return dst_bufsize;
-}
-
-
 void write_audren(AVFrame *frame, CProjectMVis * pmvis){
 	if(pmvis->VisEnabled()){
 		unsigned int samples =  frame->linesize[0]/sizeof(int16_t)/2;
@@ -809,80 +501,6 @@ void write_audren(AVFrame *frame, CProjectMVis * pmvis){
 	write_audio(frame->data[0],frame->linesize[0]);
 }
 
-void playaudio_audren(AVCodecContext *ctx, SwrContext *resampler, AVPacket *pkt, AVFrame *frame,
-    CProjectMVis * pmvis)
-{
-	
-	
-	write_audio(frame->data[0],frame->linesize[0]);
-	
-	/*
-	if (avcodec_send_packet(ctx, pkt) < 0) {
-        perror("send packet");
-        return;
-    }
-	
-	while(1){
-	
-		if (avcodec_receive_frame(ctx, frame) < 0) {
-			perror("receive frame");
-			return;
-		}
-		
-	*/	
-	
-	/*
-	
-	
-		AVFrame *audioframe = av_frame_alloc();
-		
-		
-		int ret = 0;
-		int dst_samples = frame->channels * av_rescale_rnd(
-									   swr_get_delay(resampler, frame->sample_rate)
-									   + frame->nb_samples,
-									   48000,
-									   frame->sample_rate,               
-									   AV_ROUND_UP);
-					uint8_t *audiobuf = NULL;
-					ret = av_samples_alloc(&audiobuf, 
-										   NULL, 
-										   1, 
-										   dst_samples,
-										   AV_SAMPLE_FMT_S16, 
-										   1);
-					dst_samples = frame->channels * swr_convert(
-													 resampler, 
-													 &audiobuf, 
-													 dst_samples,
-													 (const uint8_t**) frame->data, 
-													 frame->nb_samples);
-													 
-					ret = av_samples_fill_arrays(audioframe->data, 
-												 audioframe->linesize, 
-												 audiobuf,
-												 1, 
-												 dst_samples, 
-												 AV_SAMPLE_FMT_S16, 
-												 1);
-		
-
-					
-					if(pmvis->VisEnabled()){
-						unsigned int samples =  audioframe->linesize[0]/sizeof(int16_t)/2;
-						pmvis->AddInt16(reinterpret_cast<int16_t*>(audioframe->data[0]),samples);
-					}
-				
-					write_audio(audioframe->data[0],audioframe->linesize[0]);
-	//}
-	
-	
-	*/
-	
-	
-	
-	
-}
 
 ssize_t free_wavebuf_index() {
     for (int i = 0; i < BUFFER_COUNT; i++) {
@@ -1004,6 +622,11 @@ void CAudioPlayer::DrawProjectM(){
         fprintf(stderr, "Could not allocate the abuffer instance.\n");
         return AVERROR(ENOMEM);
     }
+
+	if (audioctx->audpar->codec_id == AV_CODEC_ID_VORBIS  ){
+		
+	}
+
 
     /* Set the filter options through the AVOptions API. */
     av_channel_layout_describe(&audioctx->audCtx->ch_layout, ch_layout, sizeof(ch_layout));

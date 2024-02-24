@@ -8,6 +8,7 @@
 #include <sys/time.h>
 
 #include <string>
+#include <vector>
 #include <iterator>
 #include <utility>
 
@@ -47,8 +48,14 @@ CIniParser* configini;
 float multiplyRes = 1.0f;
 bool isHandheld = true;
 
+std::vector<std::string> audioextensions = {".mp3",".flac",".ogg"};
 
-std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".mod",".okt",".xm",".s3m",".spc",".ay",".vgm",".gbs"};
+
+std::vector<std::string> libopenmptext = {"669",".amf",".ams",".dbm",".digi",".dmf",".dsm",".far",".gdm",".ice",".imf",".it",".j2b",".m15",".mdl",".med",".mmcmp",".mms",".mo3",".mod",".mptm",".mt2",".mtm",".nst",".okt",".plm",".ppm",".psm",".pt36",".ptm",".s3m",".sfx",".sfx2",".st26",".stk",".stm",".ult",".umx",".wow",".xm",".xpk"};
+std::vector<std::string> libgmefilext = {".ay",".gbs",".gym",".hes",".kss",".nfs",".nfse",".sap",".spc",".vgm",".vgz"};
+std::vector<std::string> libmodplugext = {"669",".abc",".amf",".ams",".dbm",".dmf",".dsm",".far",".it",".mdl",".med",".mid",".mod",".mt2",".mtm",".okt",".psm",".ptm",".s3m",".stm",".ult",".umx",".xm",".itgz",".itr",".itz",".mdgz",".mdr",".mdz",".s3gz",".s3r",".s3z",".xmgz",".xmr",".xmz"};
+
+
 
 extern u32 __nx_applet_exit_mode;
 
@@ -91,6 +98,16 @@ main(int argc, const char* const* argv) {
 		return 0;
 	}
 	
+	
+	std::vector<std::string> trackermerge;
+	
+	std::set_union(libopenmptext.cbegin(), libopenmptext.cend(),
+                   libmodplugext.cbegin(), libmodplugext.cend(),
+                   std::back_inserter(trackermerge));
+	
+	
+	audioextensions.insert(audioextensions.end(), trackermerge.begin(), trackermerge.end());
+	audioextensions.insert(audioextensions.end(), libgmefilext.begin(), libgmefilext.end());
 	
 	configini = new CIniParser("NXMilk.ini");
 	
@@ -144,7 +161,7 @@ main(int argc, const char* const* argv) {
 	
 	imgloader = new CImgLoader("romfs:");
 
-	audioplayer = new CAudioPlayer(1,1280.0f*multiplyRes,720.0f*multiplyRes,configini->getAudioPlayerConfig());
+	audioplayer = new CAudioPlayer(1280.0f*multiplyRes,720.0f*multiplyRes,configini->getAudioPlayerConfig());
 	
 	fsbrowser = new CFSBrowser("");
 	nxmpgfx::updateSplash(100);
