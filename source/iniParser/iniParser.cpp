@@ -1,5 +1,17 @@
 #include "iniParser.h"
 
+std::vector<std::string> split_extension (const std::string &s, char delim) {
+    std::vector<std::string> result;
+    std::stringstream ss (s);
+    std::string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
+}
+
 bool string_to_bool(std::string boolstring){
 	if(boolstring == "true"){
 		return true;
@@ -66,6 +78,10 @@ void CIniParser::ReadConfig(){
 		if(inidata["AudioPlayer"].has("usebuiltinpreset")){
 			audioplayerconfig.usebuiltinpreset = string_to_bool(inidata.get("AudioPlayer").get("usebuiltinpreset"));
 		}
+		if(inidata["AudioPlayer"].has("enabled_extensions")){
+			std::string enabled_extensions_string = inidata.get("AudioPlayer").get("enabled_extensions");
+			config_enabled_extensions = split_extension(enabled_extensions_string,',');
+		}
 	
 	}
 }
@@ -76,4 +92,9 @@ std::string CIniParser::getStartPath(){
 
 audioplayerconfig_struct CIniParser::getAudioPlayerConfig(){
 	return audioplayerconfig;
+}
+
+std::vector<std::string> CIniParser::getConfigExtensions(){
+	
+	return config_enabled_extensions;
 }

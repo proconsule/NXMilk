@@ -26,6 +26,7 @@ public:
 	
 	std::string getStartPath();
 	audioplayerconfig_struct getAudioPlayerConfig();
+	std::vector<std::string> getConfigExtensions();
 	
 	
 protected:
@@ -34,6 +35,8 @@ protected:
 	audioplayerconfig_struct audioplayerconfig;
 	
 	bool opened = false;
+	
+	std::vector<std::string> config_enabled_extensions;
 	
 	mINI::INIFile *fileref;
 	mINI::INIStructure inidata;

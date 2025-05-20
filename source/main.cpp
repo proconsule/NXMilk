@@ -111,6 +111,9 @@ main(int argc, const char* const* argv) {
 	
 	configini = new CIniParser("NXMilk.ini");
 	
+	for(long unsigned int i=0;i<configini->getConfigExtensions().size();i++){
+		audioextensions.push_back(configini->getConfigExtensions()[i]);
+	}
 	
 	
 	SocketInitConfig cfg = *(socketGetDefaultInitConfig());

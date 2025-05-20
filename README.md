@@ -120,6 +120,13 @@ interfacehidesec = 10
 usebuiltinpreset = true
 ```
 
+Since file extensions for audio file can be very "exotic" starting from version 0.1.0 enabled extension can be added also on config file
+```
+enabled_extensions = .aac,.ac3,.wav
+```
+NXMilk uses ffmpeg along with many other library so the supported files list is HUGE
+
+
 NXMilk has some builtin presets. Can be disabled setting to false the usebuiltinpreset option
 
 
