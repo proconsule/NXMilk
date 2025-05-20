@@ -71,7 +71,8 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -DIMGUI_IMPL_OPENGL
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lprojectM-4 -lprojectM-4-playlist -lGLESv2 -lmpv `sdl2-config --libs` `curl-config --libs` `freetype-config --libs`  -lavformat -lavfilter -lpostproc -lavcodec  -lswresample -lswscale -lavutil -llzma -lopus -lvpx -lass -lharfbuzz -lfreetype -lfribidi  -lstdc++ -ldav1d -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmodplug -lmpg123 -lvorbis  -logg -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lsmb2 -lssh2 -lnfs -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lexpat -llzma -lgme -L/opt/devkitpro/portlibs/switch/lib -lopenmpt -lstdc++ -L/opt/devkitpro/portlibs/switch/lib -L/opt/devkitpro/portlibs/switch/lib -lz -lmpg123 -lm -lm -logg -lvorbis -lm -L/opt/devkitpro/portlibs/switch/lib -logg -lvorbisfile -L/opt/devkitpro/portlibs/switch/lib -lvorbis -lm -L/opt/devkitpro/portlibs/switch/lib -logg -lm -lzstd -llz4 -lbz2 -lnx -lc -lz
+LIBS	:=  -lprojectM-4 -lprojectM-4-playlist `aarch64-none-elf-pkg-config --libs --libs libavformat libavcodec libavutil libavfilter libswscale libpostproc` -lGLESv2 `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lexpat -llzma -lzstd -llz4 -lbz2 -lnx -lc -lz
+
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
