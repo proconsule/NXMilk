@@ -1,0 +1,40 @@
+pkgname=switch-libopenmpt
+pkgver=0.6.22
+pkgrel=1
+pkgdesc="libopenmpt"
+url="https://lib.openmpt.org/"
+license=('Other')
+arch=('any')
+options=(!strip libtool staticlibs)
+groups=('switch-portlibs')
+source=("${url}/files/libopenmpt/src/libopenmpt-${pkgver}+release.autotools.tar.gz")
+sha256sums=(
+  'SKIP'
+)
+
+prepare() {
+	 cd "libopenmpt-${pkgver}+release.autotools"
+#  cd "libsmb2-${pkgver}"
+#  patch -Np1 -i "$srcdir/switch.patch"
+}
+
+build() {
+  cd "libopenmpt-${pkgver}+release.autotools"
+
+  source /opt/devkitpro/switchvars.sh
+  
+  export CXXSTDLIB_PCLIBSPRIVATE=-lstdc++
+  ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static --without-portaudio --without-portaudiocpp --disable-examples --disable-openmpt123 
+
+  make -j8
+}
+
+package() {
+  cd "libopenmpt-${pkgver}+release.autotools"
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 LICENSE "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
+}

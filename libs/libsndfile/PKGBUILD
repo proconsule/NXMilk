@@ -1,0 +1,39 @@
+pkgname=switch-libsndfile
+pkgver=1.2.2
+pkgrel=1
+pkgdesc="libsndfile"
+url="https://github.com/libsndfile/libsndfile"
+license=('LGPL')
+arch=('any')
+options=(!strip libtool staticlibs)
+groups=('switch-portlibs')
+source=("${url}/releases/download/${pkgver}/libsndfile-${pkgver}.tar.xz")
+sha256sums=(
+  'SKIP'
+)
+
+prepare() {
+	 cd "libsndfile-${pkgver}"
+#  cd "libsmb2-${pkgver}"
+#  patch -Np1 -i "$srcdir/switch.patch"
+}
+
+build() {
+   cd "libsndfile-${pkgver}"
+
+  source /opt/devkitpro/switchvars.sh
+  
+  ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static --without-portaudio --without-portaudiocpp  --disable-full-suite
+
+  make -j8
+}
+
+package() {
+   cd "libsndfile-${pkgver}"
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 COPYING "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
+}

@@ -1,0 +1,30 @@
+diff -ur libgme-0.6.4-orig/gme/CMakeLists.txt libgme-0.6.4/gme/CMakeLists.txt
+--- libgme-0.6.4-orig/gme/CMakeLists.txt	2025-02-15 22:24:34.000000000 +0100
++++ libgme-0.6.4/gme/CMakeLists.txt	2025-05-20 11:34:17.337847300 +0200
+@@ -265,25 +265,7 @@
+         cmake_pop_check_state()
+     endif()
+ 
+-    # Link to libm, if necessary
+-    check_cxx_source_compiles("
+-        #include <math.h>
+-        int main(int argc, char** argv) {
+-            return (int) pow(argc, 2.5);
+-        }" LIBM_NOT_NEEDED)
+-    if(NOT LIBM_NOT_NEEDED)
+-        cmake_push_check_state()
+-        set(CMAKE_REQUIRED_LIBRARIES "-lm")
+-        check_cxx_source_compiles("
+-            #include <math.h>
+-            int main(int argc, char** argv) {
+-                return (int) pow(argc, 2.5);
+-            }" HAVE_LIBM)
+-        cmake_pop_check_state()
+-        if(HAVE_LIBM)
+-            list(APPEND PC_LIBS -lm) # for libgme.pc
+-        endif()
+-    endif()
++    list(APPEND PC_LIBS -lm) # for libgme.pc
+ endif()
+ 
+ # Add a version script to hide the c++ STL

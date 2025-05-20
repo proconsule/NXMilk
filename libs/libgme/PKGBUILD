@@ -7,15 +7,15 @@ license=('LGPL')
 arch=('any')
 options=(!strip libtool staticlibs)
 groups=('switch-portlibs')
-source=("${url}/releases/download/${pkgver}/libgme-${pkgver}-src.tar.gz")
+source=("${url}/releases/download/${pkgver}/libgme-${pkgver}-src.tar.gz" "gme.patch")
 sha256sums=(
+  'SKIP'
   'SKIP'
 )
 
 prepare() {
 	 cd "libgme-${pkgver}"
-#  cd "libsmb2-${pkgver}"
-#  patch -Np1 -i "$srcdir/switch.patch"
+     patch -Np1 -i "$srcdir/gme.patch"
 }
 
 build() {
@@ -25,14 +25,9 @@ build() {
   
   aarch64-none-elf-cmake -DCMAKE_INSTALL_PREFIX=$PORTLIBS_PREFIX \
     -DCMAKE_C_FLAGS="$CFLAGS $CPPFLAGS" \
-    -DCMAKE_CXX_FLAGS="$CFLAGS -lm" \
-	-DENABLE_STATIC_RUNTIME=1 \
-  #./bootstrap
-
-  #./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
-  #  --disable-shared --enable-static --without-libkrb5 --disable-werror
-
-  make
+    -DCMAKE_CXX_FLAGS="$CFLAGS" 
+	
+  make -j4
 }
 
 package() {
@@ -41,5 +36,5 @@ package() {
   source /opt/devkitpro/switchvars.sh
 
   make DESTDIR="${pkgdir}" install
-  #install -Dm644 COPYING "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
+  install -Dm644 license.txt "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
 }

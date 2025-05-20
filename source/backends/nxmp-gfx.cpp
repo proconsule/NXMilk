@@ -1,27 +1,11 @@
 #include "nxmp-gfx.h"
 
-#ifdef OPENGL_BACKEND
 #include "imgui_impl_opengl3.h"
 #include "GLFW/glfw3.h"
 //#include "utils.h"
 #include <switch.h>
-#endif
-#ifdef DEKO3D_BACKEND
-#include <array>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <numeric>
-#include <optional>
-#include <vector>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <switch.h>
-#endif
+
 #include "stb_image.h"
-
-
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
@@ -44,8 +28,7 @@ namespace nxmpgfx{
 	ImVec4 Button_color = ImVec4(0.0f, 0.0f, 0.0f, 0.00f);
 	ImVec4 ButtonActive_color = ImVec4(0, 255, 203, 0.30f);
 	
-	
-#ifdef OPENGL_BACKEND	
+		
 	const char* glsl_version = "#version 430 core";
 	GLFWwindow *window;
 
@@ -65,68 +48,6 @@ namespace nxmpgfx{
 	
 	GLuint VBO_Progress;
 	GLuint VAO_Progress;
-	
-#endif	
-	
-#ifdef DEKO3D_BACKEND
-
-	//unsigned int WIDTH = 1920;
-	//unsigned int HEIGHT = 1080;
-	
-	constexpr auto MAX_SAMPLERS = 31;
-	constexpr auto MAX_IMAGES   = 31;
-
-	constexpr auto FB_NUM       = 2u;
-
-	constexpr auto CMDBUF_SIZE  = 1024 * 1024;
-
-	unsigned s_width  = 1920;
-	unsigned s_height = 1080;
-
-	dk::UniqueDevice       s_device;
-
-	dk::UniqueMemBlock     s_depthMemBlock;
-	dk::Image              s_depthBuffer;
-
-	dk::UniqueMemBlock     s_fbMemBlock;
-	dk::Image              s_frameBuffers[FB_NUM];
-
-	dk::UniqueMemBlock     s_cmdMemBlock[FB_NUM];
-	dk::UniqueCmdBuf       s_cmdBuf[FB_NUM];
-
-	dk::UniqueMemBlock     s_descriptorMemBlock;
-	dk::SamplerDescriptor *s_samplerDescriptors = nullptr;
-	dk::ImageDescriptor   *s_imageDescriptors   = nullptr;
-
-	dk::UniqueQueue        s_queue;
-	dk::UniqueSwapchain    s_swapchain;
-	
-	DkFence doneFence;
-    DkFence readyFence;
-	
-	/*
-    mpv_deko3d_fbo mpv_fbo{nullptr, &readyFence, &doneFence,
-                           s_width,    s_height,         DkImageFormat_RGBA8_Unorm};
-    mpv_render_param fbo_params[3] = {{MPV_RENDER_PARAM_DEKO3D_FBO, &mpv_fbo},
-                                      { MPV_RENDER_PARAM_INVALID,
-                                        nullptr }};
-	*/		
-	
-	mpv_deko3d_fbo mpv_fbo;
-	mpv_render_param fbo_params[3] = {{MPV_RENDER_PARAM_DEKO3D_FBO, &mpv_fbo},
-                                      { MPV_RENDER_PARAM_INVALID,
-                                        nullptr }};
-	
-	int imageSlot = 0;
-	
-	/* SHADERS moved out from imgui backend*/
-	dk::Shader s_shaders[2];
-	dk::UniqueMemBlock s_codeMemBlock;
-	
-	dk::UniqueMemBlock splash_transfer;
-	
-#endif
-	
 	
 	bool docked = false;
 	
@@ -158,12 +79,7 @@ namespace nxmpgfx{
 	bool B_AX_L_LEFT_PRESS = false;
 	bool B_AX_L_RIGHT_PRESS = false;
 	
-/*	
-	bool B_AX_R_UP_PRESS = false;
-	bool B_AX_R_DOWN_PRESS = false;
-	bool B_AX_R_LEFT_PRESS = false;
-	bool B_AX_R_RIGHT_PRESS = false;
-*/
+
 	
 	typedef struct{
 		bool pressed = false;
@@ -188,444 +104,7 @@ namespace nxmpgfx{
 	inline uint64_t bit_set(uint64_t number, unsigned int n) {
 		return number | ((unsigned int)1 << n);
 	}
-	
-	
-#ifdef DEKO3D_BACKEND
 
-void loadShaders (dk::UniqueDevice &device_)
-{
-	/// \brief Shader file descriptor
-	struct ShaderFile
-	{
-		/// \brief Parameterized constructor
-		/// \param shader_ Shader object
-		/// \param path_ Path to source code
-		ShaderFile (dk::Shader &shader_, char const *const path_)
-		    : shader (shader_), path (path_), size (getSize (path_))
-		{
-		}
-
-		/// \brief Get size of a file
-		/// \param path_ Path to file
-		static std::size_t getSize (char const *const path_)
-		{
-			struct stat st;
-			auto const rc = ::stat (path_, &st);
-			if (rc != 0)
-			{
-				std::fprintf (stderr, "stat(%s): %s\n", path_, std::strerror (errno));
-				std::abort ();
-			}
-
-			return st.st_size;
-		}
-
-		/// \brief Shader object
-		dk::Shader &shader;
-		/// \brief Path to source code
-		char const *const path;
-		/// \brief Source code file size
-		std::size_t const size;
-	};
-
-	auto shaderFiles = {ShaderFile{s_shaders[0], "romfs:/shaders/imgui_vsh.dksh"},
-	    ShaderFile{s_shaders[1], "romfs:/shaders/imgui_fsh.dksh"}};
-
-	// calculate total size of shaders
-	auto const codeSize = std::accumulate (std::begin (shaderFiles),
-	    std::end (shaderFiles),
-	    DK_SHADER_CODE_UNUSABLE_SIZE,
-	    [] (auto const sum_, auto const &file_) {
-		    return sum_ + imgui::deko3d::align (file_.size, DK_SHADER_CODE_ALIGNMENT);
-	    });
-
-	// create shader code memblock
-	s_codeMemBlock =
-	    dk::MemBlockMaker{device_, imgui::deko3d::align (codeSize, DK_MEMBLOCK_ALIGNMENT)}
-	        .setFlags (
-	            DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code)
-	        .create ();
-
-	auto const addr    = static_cast<std::uint8_t *> (s_codeMemBlock.getCpuAddr ());
-	std::size_t offset = 0;
-
-	// read shaders into memblock
-	for (auto &file : shaderFiles)
-	{
-		std::uint32_t const codeOffset = offset;
-
-		auto *fp = fopen(file.path, "rb");
-		if (!fp)
-		{
-			std::fprintf (stderr, "open(%s): %s\n", file.path, std::strerror (errno));
-			std::abort ();
-		}
-
-		if (fread (&addr[offset], 1, file.size, fp) != file.size)
-		{
-			std::fprintf (stderr, "read(%s): %s\n", file.path, std::strerror (errno));
-			std::abort ();
-		}
-
-		fclose(fp);
-
-		dk::ShaderMaker{s_codeMemBlock, codeOffset}.initialize (file.shader);
-
-		offset = imgui::deko3d::align (offset + file.size, DK_SHADER_CODE_ALIGNMENT);
-	}
-}
-
-
-
-
-
-void rebuildSwapchain(unsigned const width_, unsigned const height_) {
-    // destroy old swapchain
-	
-	s_width = width_;
-	s_height = height_;
-	
-    s_swapchain = nullptr;
-
-    // create new depth buffer image layout
-    dk::ImageLayout depthLayout;
-    dk::ImageLayoutMaker{s_device}
-        .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
-        .setFormat(DkImageFormat_Z24S8)
-        .setDimensions(width_, height_)
-        .initialize(depthLayout);
-
-    auto const depthAlign = depthLayout.getAlignment();
-    auto const depthSize  = depthLayout.getSize();
-
-    // create depth buffer memblock
-    if (!s_depthMemBlock) {
-        s_depthMemBlock = dk::MemBlockMaker{s_device,
-            imgui::deko3d::align(
-                depthSize, std::max<unsigned> (depthAlign, DK_MEMBLOCK_ALIGNMENT))}
-                              .setFlags(DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image)
-                              .create();
-    }
-
-    s_depthBuffer.initialize(depthLayout, s_depthMemBlock, 0);
-
-    // create framebuffer image layout
-    dk::ImageLayout fbLayout;
-    dk::ImageLayoutMaker{s_device}
-        .setFlags(DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression)
-        .setFormat(DkImageFormat_RGBA8_Unorm)
-        .setDimensions(width_, height_)
-        .initialize(fbLayout);
-
-    auto const fbAlign = fbLayout.getAlignment();
-    auto const fbSize  = fbLayout.getSize();
-
-    // create framebuffer memblock
-    if (!s_fbMemBlock) {
-        s_fbMemBlock = dk::MemBlockMaker{s_device,
-            imgui::deko3d::align(
-                FB_NUM * fbSize, std::max<unsigned> (fbAlign, DK_MEMBLOCK_ALIGNMENT))}
-                           .setFlags(DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image)
-                           .create();
-    }
-
-    // initialize swapchain images
-    std::array<DkImage const *, FB_NUM> swapchainImages;
-    for (unsigned i = 0; i < FB_NUM; ++i) {
-        swapchainImages[i] = &s_frameBuffers[i];
-        s_frameBuffers[i].initialize(fbLayout, s_fbMemBlock, i * fbSize);
-    }
-
-    // create swapchain
-    s_swapchain = dk::SwapchainMaker{s_device, nwindowGetDefault(), swapchainImages}.create();
-}
-
-void deko3dInit_splash(bool docked_) {
-	docked = docked;
-    // create deko3d device
-	s_device = dk::DeviceMaker{}.create();
-	int splash_width, splash_height;
-	unsigned char* image_data = NULL;
-	
-    // initialize swapchain with maximum resolution
-	if(docked_){
-		rebuildSwapchain(1920, 1080);
-		image_data = stbi_load("romfs:/appletmode.png", &splash_width, &splash_height, NULL, 4);
-			if (image_data == NULL)
-				return;
-	}else{
-		rebuildSwapchain(1280, 720);
-		image_data = stbi_load("romfs:/appletmode-720.png", &splash_width, &splash_height, NULL, 4);
-			if (image_data == NULL)
-				return;
-	}
-    // create memblocks for each image slot
-    for (std::size_t i = 0; i < FB_NUM; ++i) {
-        // create command buffer memblock
-        s_cmdMemBlock[i] =
-            dk::MemBlockMaker{s_device, imgui::deko3d::align(CMDBUF_SIZE, DK_MEMBLOCK_ALIGNMENT)}
-                .setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-                .create();
-
-        // create command buffer
-        s_cmdBuf[i] = dk::CmdBufMaker{s_device}.create();
-        s_cmdBuf[i].addMemory(s_cmdMemBlock[i], 0, s_cmdMemBlock[i].getSize());
-    }
-
-    // create image/sampler memblock
-    static_assert(sizeof(dk::ImageDescriptor)   == DK_IMAGE_DESCRIPTOR_ALIGNMENT);
-    static_assert(sizeof(dk::SamplerDescriptor) == DK_SAMPLER_DESCRIPTOR_ALIGNMENT);
-    static_assert(DK_IMAGE_DESCRIPTOR_ALIGNMENT == DK_SAMPLER_DESCRIPTOR_ALIGNMENT);
-    s_descriptorMemBlock = dk::MemBlockMaker{s_device,
-        imgui::deko3d::align(
-            (MAX_SAMPLERS + MAX_IMAGES) * sizeof(dk::ImageDescriptor), DK_MEMBLOCK_ALIGNMENT)}
-                               .setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-                               .create();
-
-    // get cpu address for descriptors
-    s_samplerDescriptors =
-        static_cast<dk::SamplerDescriptor *> (s_descriptorMemBlock.getCpuAddr());
-    s_imageDescriptors =
-        reinterpret_cast<dk::ImageDescriptor *> (&s_samplerDescriptors[MAX_SAMPLERS]);
-
-    // create queue
-    s_queue = dk::QueueMaker{s_device}.setFlags(DkQueueFlags_Graphics).create();
-
-    auto &cmdBuf = s_cmdBuf[0];
-
-    // bind image/sampler descriptors
-    cmdBuf.bindSamplerDescriptorSet(s_descriptorMemBlock.getGpuAddr(), MAX_SAMPLERS);
-    cmdBuf.bindImageDescriptorSet(
-        s_descriptorMemBlock.getGpuAddr() + MAX_SAMPLERS * sizeof(dk::SamplerDescriptor),
-        MAX_IMAGES);
-    s_queue.submitCommands(cmdBuf.finishList());
-    s_queue.waitIdle();
-
-    cmdBuf.clear();
-	loadShaders(s_device);
-	
-	
-	auto &cmdbuf = s_cmdBuf[0];
-		 
-		
-		
-		
-		 
-
-		splash_transfer = dk::MemBlockMaker(s_device, imgui::deko3d::align(splash_width*splash_height*4, DK_MEMBLOCK_ALIGNMENT))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-			.create();
-
-		
-		memcpy(splash_transfer.getCpuAddr(),image_data,splash_width*splash_height*4);
-
-		s_queue.submitCommands(cmdbuf.finishList());
-		s_queue.waitIdle();
-		
-		imageSlot = s_queue.acquireImage(s_swapchain);
-		auto &cmdBuf2    = s_cmdBuf[imageSlot];
-
-		cmdBuf2.clear();
-
-		// bind frame/depth buffers and clear them
-		dk::ImageView colorTarget{s_frameBuffers[imageSlot]};
-		
-		dk::ImageView depthTarget{s_depthBuffer};
-		
-		cmdBuf2.bindRenderTargets(&colorTarget, &depthTarget);
-		
-		cmdBuf2.setScissors(0, DkScissor{0, 0, s_width, s_height});
-		cmdBuf2.clearColor(0, DkColorMask_RGBA, 0.35f, 0.30f, 0.35f, 1.0f);
-		cmdBuf2.clearDepthStencil(true, 1.0f, 0xFF, 0);
-		
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		//cmdBuf2.copyImage(out_view,DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height)},colorTarget,DkImageRect{0, 0, 0, std::uint32_t(s_width), std::uint32_t(s_height)});
-		
-		cmdBuf2.copyBufferToImage (DkCopyBuf{splash_transfer.getGpuAddr ()}, colorTarget,
-		{0, 0, 0, static_cast<std::uint32_t>(s_width), static_cast<std::uint32_t>(s_height), 1});
-		
-
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		
-		
-		
-		
-		cmdBuf2.barrier(DkBarrier_Fragments, 0);
-		cmdBuf2.discardDepthStencil();
-
-		// present image
-		s_queue.presentImage(s_swapchain, imageSlot);
-		
-	
-}
-
-
-void deko3dInit(bool docked_) {
-	docked = docked;
-    // create deko3d device
-	s_device = dk::DeviceMaker{}.create();
-	int splash_width, splash_height;
-	unsigned char* image_data = NULL;
-	
-    // initialize swapchain with maximum resolution
-	if(docked_){
-		rebuildSwapchain(1920, 1080);
-		image_data = stbi_load("romfs:/splash.png", &splash_width, &splash_height, NULL, 4);
-			if (image_data == NULL)
-				return;
-	}else{
-		rebuildSwapchain(1280, 720);
-		image_data = stbi_load("romfs:/splash-720.png", &splash_width, &splash_height, NULL, 4);
-			if (image_data == NULL)
-				return;
-	}
-    // create memblocks for each image slot
-    for (std::size_t i = 0; i < FB_NUM; ++i) {
-        // create command buffer memblock
-        s_cmdMemBlock[i] =
-            dk::MemBlockMaker{s_device, imgui::deko3d::align(CMDBUF_SIZE, DK_MEMBLOCK_ALIGNMENT)}
-                .setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-                .create();
-
-        // create command buffer
-        s_cmdBuf[i] = dk::CmdBufMaker{s_device}.create();
-        s_cmdBuf[i].addMemory(s_cmdMemBlock[i], 0, s_cmdMemBlock[i].getSize());
-    }
-
-    // create image/sampler memblock
-    static_assert(sizeof(dk::ImageDescriptor)   == DK_IMAGE_DESCRIPTOR_ALIGNMENT);
-    static_assert(sizeof(dk::SamplerDescriptor) == DK_SAMPLER_DESCRIPTOR_ALIGNMENT);
-    static_assert(DK_IMAGE_DESCRIPTOR_ALIGNMENT == DK_SAMPLER_DESCRIPTOR_ALIGNMENT);
-    s_descriptorMemBlock = dk::MemBlockMaker{s_device,
-        imgui::deko3d::align(
-            (MAX_SAMPLERS + MAX_IMAGES) * sizeof(dk::ImageDescriptor), DK_MEMBLOCK_ALIGNMENT)}
-                               .setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-                               .create();
-
-    // get cpu address for descriptors
-    s_samplerDescriptors =
-        static_cast<dk::SamplerDescriptor *> (s_descriptorMemBlock.getCpuAddr());
-    s_imageDescriptors =
-        reinterpret_cast<dk::ImageDescriptor *> (&s_samplerDescriptors[MAX_SAMPLERS]);
-
-    // create queue
-    s_queue = dk::QueueMaker{s_device}.setFlags(DkQueueFlags_Graphics).create();
-
-    auto &cmdBuf = s_cmdBuf[0];
-
-    // bind image/sampler descriptors
-    cmdBuf.bindSamplerDescriptorSet(s_descriptorMemBlock.getGpuAddr(), MAX_SAMPLERS);
-    cmdBuf.bindImageDescriptorSet(
-        s_descriptorMemBlock.getGpuAddr() + MAX_SAMPLERS * sizeof(dk::SamplerDescriptor),
-        MAX_IMAGES);
-    s_queue.submitCommands(cmdBuf.finishList());
-    s_queue.waitIdle();
-
-    cmdBuf.clear();
-	loadShaders(s_device);
-	
-	
-	auto &cmdbuf = s_cmdBuf[0];
-		 
-		
-		
-		
-		 
-
-		splash_transfer = dk::MemBlockMaker(s_device, imgui::deko3d::align(splash_width*splash_height*4, DK_MEMBLOCK_ALIGNMENT))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-			.create();
-
-		
-		memcpy(splash_transfer.getCpuAddr(),image_data,splash_width*splash_height*4);
-
-		s_queue.submitCommands(cmdbuf.finishList());
-		s_queue.waitIdle();
-		
-		imageSlot = s_queue.acquireImage(s_swapchain);
-		auto &cmdBuf2    = s_cmdBuf[imageSlot];
-
-		cmdBuf2.clear();
-
-		// bind frame/depth buffers and clear them
-		dk::ImageView colorTarget{s_frameBuffers[imageSlot]};
-		
-		dk::ImageView depthTarget{s_depthBuffer};
-		
-		cmdBuf2.bindRenderTargets(&colorTarget, &depthTarget);
-		
-		cmdBuf2.setScissors(0, DkScissor{0, 0, s_width, s_height});
-		cmdBuf2.clearColor(0, DkColorMask_RGBA, 0.35f, 0.30f, 0.35f, 1.0f);
-		cmdBuf2.clearDepthStencil(true, 1.0f, 0xFF, 0);
-		
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		//cmdBuf2.copyImage(out_view,DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height)},colorTarget,DkImageRect{0, 0, 0, std::uint32_t(s_width), std::uint32_t(s_height)});
-		
-		cmdBuf2.copyBufferToImage (DkCopyBuf{splash_transfer.getGpuAddr ()}, colorTarget,
-		{0, 0, 0, static_cast<std::uint32_t>(s_width), static_cast<std::uint32_t>(s_height), 1});
-		
-
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		
-		
-		
-		
-		cmdBuf2.barrier(DkBarrier_Fragments, 0);
-		cmdBuf2.discardDepthStencil();
-
-		// present image
-		s_queue.presentImage(s_swapchain, imageSlot);
-		
-	
-}
-
-void deko3dExit() {
-	
-	s_queue.waitIdle();
-	
-	splash_transfer.destroy();
-	
-	s_descriptorMemBlock.destroy();
-	for (unsigned i = 0; i < FB_NUM; ++i) {
-        s_cmdBuf[i].destroy();
-        s_cmdMemBlock[i].destroy();
-    }
-	s_codeMemBlock.destroy();
-	s_queue.destroy();
-    s_swapchain.destroy();
-    s_fbMemBlock.destroy();
-    s_depthMemBlock.destroy();
-    s_device.destroy();
-	
-	/*
-    // clean up all of the deko3d objects
-    s_descriptorMemBlock = nullptr;
-
-    for (unsigned i = 0; i < FB_NUM; ++i) {
-        s_cmdBuf[i]      = nullptr;
-        s_cmdMemBlock[i] = nullptr;
-    }
-
-    s_queue         = nullptr;
-    s_swapchain     = nullptr;
-    s_fbMemBlock    = nullptr;
-    s_depthMemBlock = nullptr;
-    s_device        = nullptr;
-	*/
-}
-
-
-#endif
-
-#ifdef OPENGL_BACKEND
 
 	bool GLTxtLoadFromFile(std::string filename, GLuint* out_texture, int* out_width, int* out_height,bool flip = false){
 		int image_width = 0;
@@ -706,11 +185,11 @@ void deko3dExit() {
 			0,1,2,
 			2,3,0
 		};
-#endif 
+
 	unsigned int splashtexture;
 	
 	void loopAppletMode(){
-#ifdef OPENGL_BACKEND
+
 		while (appletMainLoop())
 		{
 			glfwPollEvents();
@@ -741,68 +220,13 @@ void deko3dExit() {
 			
 			glfwSwapBuffers(window);
 		}
-#endif
-#ifdef DEKO3D_BACKEND
-		PadState s_pad;
-		padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-		padInitializeDefault(&s_pad);
 
-		while (appletMainLoop())
-		{
-			padUpdate(&s_pad);
-
-			u64 kDown = padGetButtonsDown(&s_pad);
-			if (kDown & HidNpadButton_Plus)
-				break; // break in order to return to hbmenu
-			
-			
-			imageSlot = s_queue.acquireImage(s_swapchain);
-			auto &cmdBuf2    = s_cmdBuf[imageSlot];
-
-			cmdBuf2.clear();
-
-			// bind frame/depth buffers and clear them
-			dk::ImageView colorTarget{s_frameBuffers[imageSlot]};
-			
-			dk::ImageView depthTarget{s_depthBuffer};
-			
-			cmdBuf2.bindRenderTargets(&colorTarget, &depthTarget);
-			
-			cmdBuf2.setScissors(0, DkScissor{0, 0, s_width, s_height});
-			cmdBuf2.clearColor(0, DkColorMask_RGBA, 0.35f, 0.30f, 0.35f, 1.0f);
-			cmdBuf2.clearDepthStencil(true, 1.0f, 0xFF, 0);
-			
-			s_queue.submitCommands(cmdBuf2.finishList());
-			s_queue.waitIdle();
-			
-			//cmdBuf2.copyImage(out_view,DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height)},colorTarget,DkImageRect{0, 0, 0, std::uint32_t(s_width), std::uint32_t(s_height)});
-			
-			cmdBuf2.copyBufferToImage (DkCopyBuf{splash_transfer.getGpuAddr ()}, colorTarget,
-			{0, 0, 0, static_cast<std::uint32_t>(s_width), static_cast<std::uint32_t>(s_height), 1});
-			
-
-			s_queue.submitCommands(cmdBuf2.finishList());
-			s_queue.waitIdle();
-			
-			
-			
-			
-			
-			cmdBuf2.barrier(DkBarrier_Fragments, 0);
-			cmdBuf2.discardDepthStencil();
-
-			// present image
-			s_queue.presentImage(s_swapchain, imageSlot);
-			
-			
-		}
-#endif
 	}
 	
 	
 	void Init_Backend(bool isdocked,bool vsync){
 		
-#ifdef OPENGL_BACKEND
+
 		glfwSetErrorCallback(errorCallback);
 		docked = isdocked;
 		
@@ -832,13 +256,13 @@ void deko3dExit() {
 		glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-#endif
+
 
 	}
 	
 	
 	void Init_Backend_AppletMode(bool isdocked){
-#ifdef OPENGL_BACKEND
+
 		docked = isdocked;
 		prog = glCreateProgram();
 		AttachShader( prog, GL_VERTEX_SHADER, vert );
@@ -881,11 +305,7 @@ void deko3dExit() {
 			glViewport(0,0,1280,720);
 		
 		}
-#endif
 
-#ifdef DEKO3D_BACKEND
-		deko3dInit_splash(docked);
-#endif
 		
 	}
 	
@@ -899,7 +319,7 @@ void deko3dExit() {
 	
 	void Init_Backend_Splash(bool isdocked){
 		docked = isdocked;
-#ifdef OPENGL_BACKEND
+
 
 		if(!splashloaded){
 			prog = glCreateProgram();
@@ -969,20 +389,12 @@ void deko3dExit() {
 		
         glfwSwapBuffers(window);
 
-#endif	
-
-#ifdef DEKO3D_BACKEND
-		deko3dInit(isdocked);
-		
-		
-		
-#endif
 	
 	}
 	
 	void updateSplash(int perc){
 
-#ifdef OPENGL_BACKEND
+
 
 		int barsize = 980;
 		if(docked)barsize=1620;
@@ -1010,75 +422,11 @@ void deko3dExit() {
 		
         glfwSwapBuffers(window);
 		
-#endif
-
-#ifdef DEKO3D_BACKEND
-		
-		int barsizex = 980;
-		int barsizey = 30;
-		int barx = 1280-150;
-		int bary = 720-40-barsizey;
-		if(docked){
-			barsizex=1620;
-			barsizey=45;
-			bary = 1080-60-barsizey;
-		}
-		
-		unsigned int wsize = perc*barsizex/100;
-
-
-		imageSlot = s_queue.acquireImage(s_swapchain);
-		auto &cmdBuf2    = s_cmdBuf[imageSlot];
-
-		cmdBuf2.clear();
-
-		// bind frame/depth buffers and clear them
-		dk::ImageView colorTarget{s_frameBuffers[imageSlot]};
-		
-		dk::ImageView depthTarget{s_depthBuffer};
-		
-		cmdBuf2.bindRenderTargets(&colorTarget, &depthTarget);
-		
-		cmdBuf2.setScissors(0, DkScissor{0,0, s_width, s_height});
-		cmdBuf2.clearColor(0, DkColorMask_RGBA, 0.35f, 0.30f, 0.35f, 1.0f);
-		cmdBuf2.clearDepthStencil(true, 1.0f, 0xFF, 0);
-		
-		cmdBuf2.copyBufferToImage (DkCopyBuf{splash_transfer.getGpuAddr ()}, colorTarget,
-		{0, 0, 0, static_cast<std::uint32_t>(s_width), static_cast<std::uint32_t>(s_height), 1});
-		
-		
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		cmdBuf2.setScissors(0, DkScissor{150,bary, wsize, barsizey});
-		cmdBuf2.clearColor(0, DkColorMask_RGBA, 0.859f, 0.118f, 0.29f, 1.0f);
-		
-		
-		//cmdBuf2.copyImage(out_view,DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height)},colorTarget,DkImageRect{0, 0, 0, std::uint32_t(s_width), std::uint32_t(s_height)});
-		
-		//cmdBuf2.copyBufferToImage (DkCopyBuf{transfer.getGpuAddr ()}, colorTarget,
-		//{0, 0, 0, static_cast<std::uint32_t>(s_width), static_cast<std::uint32_t>(s_height), 1});
-		
-
-		s_queue.submitCommands(cmdBuf2.finishList());
-		s_queue.waitIdle();
-		
-		
-		
-		
-		
-		cmdBuf2.barrier(DkBarrier_Fragments, 0);
-		cmdBuf2.discardDepthStencil();
-
-		// present image
-		s_queue.presentImage(s_swapchain, imageSlot);
-#endif
-
 	}
 	
 	
 	void Init_ImGui(bool isdocked){
-#ifdef OPENGL_BACKEND
+
 		docked = isdocked;
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -1100,39 +448,9 @@ void deko3dExit() {
 		//NXLOG::DEBUGLOG("Init IMGUI OPENGL BACKEND\n");
 		ImGui_ImplOpenGL3_Init(glsl_version);
 		
-#endif
 
-#ifdef DEKO3D_BACKEND
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		
-		
-		
-		ImGui::StyleColorsDark();
-		imgui::nx::init();
-		ImGuiIO &io = ImGui::GetIO();
-		//ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, ImVec4(0.0f,0.0f,0.0f,0.0f));
-		
-		io.BackendPlatformName = "Switch";
-		io.BackendRendererName = "imgui_impl_deko3d";
-		io.IniFilename = nullptr;
-		io.MouseDrawCursor = false;
-		io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-		io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-		io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
-	    
-		imgui::deko3d::init(s_device,
-        s_queue,
-        s_cmdBuf[0],
-        s_samplerDescriptors[0],
-        s_imageDescriptors[0],
-        dkMakeTextureHandle(0, 0),
-		s_shaders,
-        FB_NUM);
-		
-#endif
+
 		if(docked)ImGui::GetIO().FontGlobalScale = 1.5f;
 		if(!docked)ImGui::GetIO().FontGlobalScale = 1.0f;
 		//ImGuiStyle& style = ImGui::GetStyle();
@@ -1142,124 +460,64 @@ void deko3dExit() {
 	
 	
 	void Destory_ImGui(){
-#ifdef OPENGL_BACKEND
+
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-#endif
-#ifdef DEKO3D_BACKEND
-		ImGui::DestroyContext();
-		
-#endif
+
 		
 	}
 	
 	void Destroy_Backend(){
-#ifdef OPENGL_BACKEND
+
 		glfwDestroyWindow(window);
 		glfwTerminate();
-#endif
-#ifdef DEKO3D_BACKEND
-		imgui::nx::exit();
 
-		// wait for queue to be idle
-		s_queue.waitIdle();
 
-		imgui::deko3d::exit();
-		deko3dExit();
-#endif
 	}
 	
 	void Destroy(){
-#ifdef OPENGL_BACKEND
+
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 
 		glfwDestroyWindow(window);
 		glfwTerminate();
-#endif
-#ifdef DEKO3D_BACKEND
-		ImGui::DestroyContext();
-		imgui::nx::exit();
 
-		// wait for queue to be idle
-		s_queue.waitIdle();
 
-		imgui::deko3d::exit();
-		deko3dExit();
-#endif
 	}
 	
 	void NewFrame(){
 
-#ifdef OPENGL_BACKEND
+
 		ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-#endif
-#ifdef DEKO3D_BACKEND
-		
-		
-#endif
+
+
 	}
 
 	void Render_PreMPV(){
 		ImGui::Render();
 		ImGuiIO &io = ImGui::GetIO();
-#ifdef OPENGL_BACKEND
+
 		glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glViewport(0, 0, static_cast<int>(io.DisplaySize.x), static_cast<int>(io.DisplaySize.y));  // we have to set the Viewport on every cycle because mpv_render_context_render internally rescales the fb of the context(?!)...
 			
-#endif
-#ifdef DEKO3D_BACKEND
 
-		
-		if (s_width != io.DisplaySize.x || s_height != io.DisplaySize.y) {
-			s_width  = io.DisplaySize.x;
-			s_height = io.DisplaySize.y;
-			//if(s_width == 1280.0f)ImGui::GetIO().FontGlobalScale = 1.0f;
-			//if(s_width == 1920.0f)ImGui::GetIO().FontGlobalScale = 1.5f;
-			rebuildSwapchain(s_width, s_height);
-		}
-		
-		// get image from queue
-		imageSlot = s_queue.acquireImage(s_swapchain);
-		auto &cmdBuf    = s_cmdBuf[imageSlot];
 
-		cmdBuf.clear();
-
-		// bind frame/depth buffers and clear them
-		dk::ImageView colorTarget{s_frameBuffers[imageSlot]};
-		dk::ImageView depthTarget{s_depthBuffer};
-		cmdBuf.bindRenderTargets(&colorTarget, &depthTarget);
-		cmdBuf.setScissors(0, DkScissor{0, 0, s_width, s_height});
-		cmdBuf.clearColor(0, DkColorMask_RGBA, 0.35f, 0.30f, 0.35f, 1.0f);
-		cmdBuf.clearDepthStencil(true, 1.0f, 0xFF, 0);
-		s_queue.submitCommands(cmdBuf.finishList());
-		s_queue.waitIdle();
-#endif
 	}
 	void Render_PostMPV(){
-#ifdef OPENGL_BACKEND
+
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
-#endif
-#ifdef DEKO3D_BACKEND
-		auto &cmdBuf    = s_cmdBuf[imageSlot];
-		imgui::deko3d::render(s_device, s_queue, cmdBuf, imageSlot);
 
-		// wait for fragments to be completed before discarding depth/stencil buffer
-		cmdBuf.barrier(DkBarrier_Fragments, 0);
-		cmdBuf.discardDepthStencil();
 
-		// present image
-		s_queue.presentImage(s_swapchain, imageSlot);
-#endif
 	}
 	
 	void Resize(float w,float h){
-#ifdef OPENGL_BACKEND
+
 		if(w == 1280.0){
 			ImGui::GetIO().FontGlobalScale = 1.0f;
 		}else{
@@ -1268,14 +526,7 @@ void deko3dExit() {
 		WIDTH = static_cast<int>(w);
 		HEIGHT = static_cast<int>(h);
 		glfwSetWindowSize(window,w,h);
-#endif
-#ifdef DEKO3D_BACKEND
-		//s_width  = w;
-		//s_height = h;
-		if(s_width == 1280.0f)ImGui::GetIO().FontGlobalScale = 1.0f;
-		if(s_width == 1920.0f)ImGui::GetIO().FontGlobalScale = 1.5f;
-		
-#endif
+
 
 	
 	}
@@ -1286,98 +537,8 @@ void deko3dExit() {
 		uint64_t ret_event = 0;
 		
 
-#ifdef DEKO3D_BACKEND		
-		
-		uint64_t keydown =  imgui::nx::newFrame();
-		
-		if (keydown & HidNpadButton_A && !B_A_PRESS){
-			ret_event = bit_set(ret_event,BUT_A);
-		}
-		if (keydown & HidNpadButton_B && !B_B_PRESS){
-			ret_event = bit_set(ret_event,BUT_B);
-		}
-		if (keydown & HidNpadButton_Y && !B_Y_PRESS){
-			ret_event = bit_set(ret_event,BUT_Y);
-		}
-		if (keydown & HidNpadButton_X && !B_X_PRESS){
-			ret_event = bit_set(ret_event,BUT_X);
-		}
-		if (keydown & HidNpadButton_Up && !B_DU_PRESS){
-			ret_event = bit_set(ret_event,BUT_DUP);
-		}
-		if (keydown & HidNpadButton_Down && !B_DD_PRESS){
-			ret_event = bit_set(ret_event,BUT_DDOWN);
-		}
-		if (keydown & HidNpadButton_Left && !B_DL_PRESS){
-			ret_event = bit_set(ret_event,BUT_DLEFT);
-		}
-		if (keydown & HidNpadButton_Right && !B_DR_PRESS){
-			ret_event = bit_set(ret_event,BUT_DRIGHT);
-		}
-		if (keydown & HidNpadButton_L && !B_L_PRESS){
-			ret_event = bit_set(ret_event,BUT_L);
-		}
-		if (keydown & HidNpadButton_R && !B_R_PRESS){
-			ret_event = bit_set(ret_event,BUT_R);
-		}
-		if (keydown & HidNpadButton_ZL && !B_ZL_PRESS){
-			ret_event = bit_set(ret_event,BUT_ZL);
-		}
-		if (keydown & HidNpadButton_ZR && !B_ZR_PRESS){
-			ret_event = bit_set(ret_event,BUT_ZR);
-		}
-		if (keydown & HidNpadButton_StickL && !B_TL_PRESS){
-			ret_event = bit_set(ret_event,BUT_TL);
-		}
-		if (keydown & HidNpadButton_StickR && !B_TR_PRESS){
-			ret_event = bit_set(ret_event,BUT_TR);
-		}
-		if (keydown & HidNpadButton_StickRUp){
-			ret_event = bit_set(ret_event,B_AX_R_UP);
-		}
-		if (keydown & HidNpadButton_StickRDown){
-			ret_event = bit_set(ret_event,B_AX_R_DOWN);
-		}
-		if (keydown & HidNpadButton_Minus && !B_MINUS_PRESS){
-			ret_event = bit_set(ret_event,BUT_MINUS);
-		}
-		if (keydown & HidNpadButton_Plus && !B_PLUS_PRESS){
-			ret_event = bit_set(ret_event,BUT_PLUS);
-		}
-		   
-		   
-		B_ZL_PRESS = keydown & HidNpadButton_ZL;
-		B_ZR_PRESS = keydown & HidNpadButton_ZR;
-			
-		B_A_PRESS = keydown & HidNpadButton_A;
-		B_X_PRESS = keydown & HidNpadButton_X;
-		B_B_PRESS = keydown & HidNpadButton_B;
-		B_Y_PRESS = keydown & HidNpadButton_Y;
-		B_DD_PRESS = keydown & HidNpadButton_Down;
-		B_DU_PRESS = keydown & HidNpadButton_Up;
-			
-		B_DL_PRESS = keydown & HidNpadButton_Left;
-		B_DR_PRESS = keydown & HidNpadButton_Right;
 
-		B_R_PRESS = keydown & HidNpadButton_R;
-		B_L_PRESS = keydown & HidNpadButton_L;
-		B_TR_PRESS = keydown & HidNpadButton_StickR;
-		B_TL_PRESS = keydown & HidNpadButton_StickL;
 
-		B_PLUS_PRESS =  keydown & HidNpadButton_Plus;
-		B_MINUS_PRESS = keydown & HidNpadButton_Minus;
-			
-			
-			
-		B_AX_L_UP_PRESS = keydown & HidNpadButton_StickLUp;
-		B_AX_L_DOWN_PRESS = keydown & HidNpadButton_StickLDown;
-		B_AX_L_LEFT_PRESS = keydown & HidNpadButton_StickLLeft;
-		B_AX_L_RIGHT_PRESS = keydown & HidNpadButton_StickLRight;
-		    
-
-#endif
-
-#ifdef OPENGL_BACKEND	
 		
 		glfwPollEvents();
 		GLFWgamepadstate state;
@@ -1531,18 +692,15 @@ void deko3dExit() {
 			
 		}
 		
-	#endif	
+	
 	
 	return ret_event;
 	}
 	
 	bool WindowShouldClose(){
-#ifdef OPENGL_BACKEND
+
 		return glfwWindowShouldClose(window);
-#endif
-#ifdef DEKO3D_BACKEND
-		return false;
-#endif
+
 	}
 	
 	void UniFontLoader(bool latinonly){
@@ -1581,38 +739,10 @@ void deko3dExit() {
 				ImGui::GetIO().Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
 				ImGui::GetIO().Fonts->Build();
 			}
-		/*	
-		}else{
-			
-			unsigned char *pixels = nullptr;
-			int width = 0, height = 0, bpp = 0;
-			ImFontConfig font_cfg = ImFontConfig();
-				
-			font_cfg.OversampleH = font_cfg.OversampleV = 1;
-			font_cfg.PixelSnapH = true;
-				
-			font_cfg.OversampleH = font_cfg.OversampleV = 1;
-			font_cfg.PixelSnapH = true;
-			NXLOG::DEBUGLOG("Loading TTF\n");
-			
-			font_cfg.OversampleH = font_cfg.OversampleV = 1;
-			
-			
-			for(int i=0;i<fontsarray.size();i++){
-				ImGui::GetIO().Fonts->AddFontFromFileTTF(fontsarray[i].filename.c_str(), fontsarray[i].size, &font_cfg, fontsarray[i].charrange.Data);
-				font_cfg.MergeMode = true;
-			}
-			
-			
-			ImGui::GetIO().Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-			
-			ImGui::GetIO().Fonts->Build();
 		
-		}
-		*/
 	}
 
-#ifdef OPENGL_BACKEND
+
 	
 Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){	
 		int image_width = 0;
@@ -1639,136 +769,10 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 
 		return Tex{id,image_width,image_height};
 }
-#endif
 
-
-#ifdef DEKO3D_BACKEND	
-
-	Texture load_texture(std::string path,DkImageFormat format, std::uint32_t flags,int desc_slot) {
-		//auto desc_slot = this->find_descriptor_slot();
-		if (desc_slot < 0) {
-			std::printf("Failed to allocate descriptor slot for %s\n", path.data());
-			return {};
-		}
-		
-		auto &cmdbuf = s_cmdBuf[0];
-		 
-		int width, height;
-		unsigned char* image_data = stbi_load(path.c_str(), &width, &height, NULL, 4);
-			if (image_data == NULL)
-				return {};
-		
-		 
-
-		dk::UniqueMemBlock transfer = dk::MemBlockMaker(s_device, imgui::deko3d::align(width*height*4, DK_MEMBLOCK_ALIGNMENT))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-			.create();
-
-		
-		memcpy(transfer.getCpuAddr(),image_data,width*height*4);
-		
-
-		dk::ImageLayout layout;
-		dk::ImageLayoutMaker(s_device)
-			.setFlags(flags)
-			.setFormat(format)
-			.setDimensions(width, height)
-			.initialize(layout);
-
-		dk::UniqueMemBlock out_memblock = dk::MemBlockMaker(s_device,
-				imgui::deko3d::align(layout.getSize(), std::max(layout.getAlignment(), std::uint32_t(DK_MEMBLOCK_ALIGNMENT))))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image)
-			.create();
-		if (!out_memblock) {
-			std::printf("Failed to allocate memblock for %s\n", path.data());
-			return {};
-		}
-
-		dk::Image out_image;
-		out_image.initialize(layout, out_memblock, 0);
-
-		auto out_view = dk::ImageView(out_image);
-		auto sampler = dk::Sampler()
-			.setFilter(DkFilter_Linear, DkFilter_Linear)
-			.setWrapMode(DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge);
-
-		
-		s_samplerDescriptors[desc_slot].initialize(sampler);
-		s_imageDescriptors  [desc_slot].initialize(out_view);
-		auto out_handle = dkMakeTextureHandle(desc_slot, desc_slot);
-
-		cmdbuf.copyBufferToImage(DkCopyBuf{transfer.getGpuAddr()}, out_view,
-			DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height), 1});
-		cmdbuf.barrier(DkBarrier_None, DkInvalidateFlags_Descriptors);
-		s_queue.submitCommands(cmdbuf.finishList());
-		s_queue.waitIdle();
-
-		return Texture{out_image, std::move(out_memblock), out_handle,width,height};
-	}
-
-	Texture load_texture_from_mem(unsigned char *image_data,int width, int height,int channels,DkImageFormat format, std::uint32_t flags,int desc_slot) {
-		
-		if(image_data == NULL)return {};
-		auto &cmdbuf = s_cmdBuf[0];
-		
-/*		
-		int width, height, channels;
-		unsigned char* image_data = stbi_load_from_memory(_image_data,_img_size, &width, &height, NULL, 4);
-			if (image_data == NULL)
-				return {};
-*/		
-		 
-
-		dk::UniqueMemBlock transfer = dk::MemBlockMaker(s_device, imgui::deko3d::align(width*height*4, DK_MEMBLOCK_ALIGNMENT))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached)
-			.create();
-
-		
-		memcpy(transfer.getCpuAddr(),image_data,width*height*channels);
-		
-
-		dk::ImageLayout layout;
-		dk::ImageLayoutMaker(s_device)
-			.setFlags(flags)
-			.setFormat(format)
-			.setDimensions(width, height)
-			.initialize(layout);
-
-		dk::UniqueMemBlock out_memblock = dk::MemBlockMaker(s_device,
-				imgui::deko3d::align(layout.getSize(), std::max(layout.getAlignment(), std::uint32_t(DK_MEMBLOCK_ALIGNMENT))))
-			.setFlags(DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image)
-			.create();
-		if (!out_memblock) {
-			std::printf("Failed to allocate memblock\n");
-			return {};
-		}
-
-		dk::Image out_image;
-		out_image.initialize(layout, out_memblock, 0);
-
-		auto out_view = dk::ImageView(out_image);
-		auto sampler = dk::Sampler()
-			.setFilter(DkFilter_Linear, DkFilter_Linear)
-			.setWrapMode(DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge);
-
-		
-		s_samplerDescriptors[desc_slot].initialize(sampler);
-		s_imageDescriptors  [desc_slot].initialize(out_view);
-		auto out_handle = dkMakeTextureHandle(desc_slot, desc_slot);
-
-		cmdbuf.copyBufferToImage(DkCopyBuf{transfer.getGpuAddr()}, out_view,
-			DkImageRect{0, 0, 0, std::uint32_t(width), std::uint32_t(height), 1});
-		cmdbuf.barrier(DkBarrier_None, DkInvalidateFlags_Descriptors);
-		s_queue.submitCommands(cmdbuf.finishList());
-		s_queue.waitIdle();
-
-		return Texture{out_image, std::move(out_memblock), out_handle,width,height};
-	}
-
-#endif
 	
 	void Create_VO_FrameBuffer(float w,float h){
-#ifdef OPENGL_BACKEND	
+	
 	
 		glGenFramebuffers(1, &mpv_fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, mpv_fbo);
@@ -1782,17 +786,6 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 		
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mpv_fbotexture, 0);
 
-		//glGenRenderbuffers(1, &mpv_rbo);
-		//glBindRenderbuffer(GL_RENDERBUFFER, mpv_rbo);
-		//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
-		//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mpv_rbo);
-
-		//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		//	NXLOG::ERRORLOG("ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n");
-
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glBindTexture(GL_TEXTURE_2D, 0);
-		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		
 		
 		fbo = {
@@ -1806,26 +799,12 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 		fbo_params[1] = {MPV_RENDER_PARAM_FLIP_Y, &__fbo_one};
 		fbo_params[2] = {(mpv_render_param_type)0};
 
-#endif
 
-#ifdef DEKO3D_BACKEND
-		mpv_fbo = {nullptr, &readyFence, &doneFence,
-                           w,    h,         DkImageFormat_RGBA8_Unorm};
-		/*
-		mpv_render_param fbo_params[3] = {{MPV_RENDER_PARAM_DEKO3D_FBO, &mpv_fbo},
-                                      { MPV_RENDER_PARAM_INVALID,
-                                        nullptr }};
-		*/
-		//fbo_params[0] = {MPV_RENDER_PARAM_DEKO3D_FBO, &mpv_fbo};
-		//fbo_params[1] = {MPV_RENDER_PARAM_INVALID};
-		//fbo_params[2] = {nullptr};
-
-#endif
 
 	}
 	
 	void Rescale_VO_Framebuffer(float _width, float _height){
-#ifdef OPENGL_BACKEND	
+
 		glBindTexture(GL_TEXTURE_2D, mpv_fbotexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1841,7 +820,7 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 					.w = static_cast<int>(_width),
 					.h = static_cast<int>(_height),
 			};
-#endif
+
 	}
 	
 	void SetFullScreen(bool fullscreen){
@@ -1850,7 +829,7 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 	
 	
 	void Draw_VO(){
-#ifdef OPENGL_BACKEND
+
 		ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_Always);
 		ImGui::SetNextWindowSize(ImVec2(WIDTH,HEIGHT),ImGuiCond_Always);
 		
@@ -1866,97 +845,44 @@ Tex load_texture_from_mem(unsigned char *data,unsigned int data_size){
 		ImGui::End();
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor();
-	
-#endif
-	}
-#ifdef DEKO3D_BACKEND
-	dk::Device getDeko3dDevice() { 
-		return s_device; 
-	}
 
-	dk::Image* getFramebuffer() {
-		imageSlot = s_queue.acquireImage(s_swapchain);
-		return &s_frameBuffers[imageSlot];
 	}
 	
-	void UpdateFBO(){
-		mpv_fbo.tex = &s_frameBuffers[imageSlot];
-		queueSignalFence(&readyFence);
-		
-	}
-	
-	void queueWaitFence(DkFence* fence)
-	{
-		dkQueueWaitFence(s_queue, fence);
-		queueFlush();
-	}
-
-	void queueSignalFence(DkFence* fence, bool flash)
-	{
-		dkQueueSignalFence(s_queue, fence, flash);
-		queueFlush();
-	}
-
-	void queueFlush()
-	{
-		dkQueueFlush(s_queue);
-	}
-	
-	void queueWaitDoneFence(){
-		dkQueueWaitFence(s_queue, &doneFence);
-	}
-	
-	unsigned int getMaxSamplers(){
-		return MAX_SAMPLERS;
-	}
-	
-		
-
-#endif
 	unsigned int getWidth(){
-#ifdef DEKO3D_BACKEND
-		return s_width;
-#endif
-#ifdef OPENGL_BACKEND
+
+
 		return docked?1920:1280;
-#endif
+
 	}
 	unsigned int getHeight(){
-#ifdef DEKO3D_BACKEND
-		return s_height;
-#endif
-#ifdef OPENGL_BACKEND
+
+
 		return docked?1080:720;
-#endif
+
 	}
 	
 	void Resize_VO(float w,float h){
-#ifdef DEKO3D_BACKEND
-		
-#endif
+
 	}
 	
 	mpv_render_param * getMPV_Params(){
 		return fbo_params;
 	}
 	
-#ifdef OPENGL_BACKEND
+
 	GLuint getFBO_Texture(){
 		return mpv_fbotexture;
 	}
-#endif
+
 	
 	void setEnableTouch(bool value){
-#ifdef DEKO3D_BACKEND
-		imgui::nx::setEnableTouch(value);
-#endif
-#ifdef OPENGL_BACKEND
+
 		if(value){
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}else {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		}
-#endif
+
 
 
 	}
