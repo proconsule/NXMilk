@@ -39,9 +39,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
+SOURCES		:=	source/utils source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
 DATA		:=	data 
-INCLUDES	:=	include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
+INCLUDES	:=	source/utils include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
 ROMFS	:=	romfs
 
 

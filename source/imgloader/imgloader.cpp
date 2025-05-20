@@ -18,20 +18,7 @@ enum{
 
 CImgLoader::CImgLoader(std::string basepath){
 
-#ifdef OPENGL_BACKEND
-	/* Home Icons */
-	
-	/*
-	Utility::TxtLoadFromFile(basepath+"/sdcard.png",&icons.SdCardTexture.id,&icons.SdCardTexture.width,&icons.SdCardTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/usb.png",&icons.UsbTexture.id,&icons.UsbTexture.width,&icons.UsbTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/network.png",&icons.NetworkTexture.id,&icons.NetworkTexture.width,&icons.NetworkTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/enigma2.png",&icons.Enigma2Texture.id,&icons.Enigma2Texture.width,&icons.Enigma2Texture.height);
-	Utility::TxtLoadFromFile(basepath+"/playlist.png",&icons.PlaylistTexture.id,&icons.PlaylistTexture.width,&icons.PlaylistTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/upnp.png",&icons.UPNPTexture.id,&icons.UPNPTexture.width,&icons.UPNPTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/info.png",&icons.InfoTexture.id,&icons.InfoTexture.width,&icons.InfoTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/settings.png",&icons.SettingsTexture.id,&icons.SettingsTexture.width,&icons.SettingsTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/exit.png",&icons.ExitTexture.id,&icons.ExitTexture.width,&icons.ExitTexture.height);
-	*/
+
 	
 	/* File Browser Icons */
 	TxtLoadFromFile(basepath+"/folder.png",&icons.FolderTexture.id,&icons.FolderTexture.width,&icons.FolderTexture.height);
@@ -44,30 +31,17 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/audioplayer/icons/prev.png",&icons.PrevIcon.id,&icons.FFIcon.width,&icons.FFIcon.height);
 	TxtLoadFromFile(basepath+"/audioplayer/icons/next.png",&icons.NextIcon.id,&icons.RewIcon.width,&icons.RewIcon.height);
 	
+	TxtLoadFromFile(basepath+"/wav-file.png",&icons.Wav_Icon.id,&icons.Wav_Icon.width,&icons.Wav_Icon.height);
+	TxtLoadFromFile(basepath+"/ogg-file.png",&icons.Ogg_Icon.id,&icons.Ogg_Icon.width,&icons.Ogg_Icon.height);
+	TxtLoadFromFile(basepath+"/flac-file.png",&icons.Flac_Icon.id,&icons.Flac_Icon.width,&icons.Flac_Icon.height);
+	TxtLoadFromFile(basepath+"/mp3-file.png",&icons.Mp3_Icon.id,&icons.Mp3_Icon.width,&icons.Mp3_Icon.height);
 	
 	
-	/*
-	Utility::TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/archive.png",&icons.ArchiveTexture.id,&icons.ArchiveTexture.width,&icons.ArchiveTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/image.png",&icons.ImageTexture.id,&icons.ImageTexture.width,&icons.ImageTexture.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/dpad-up.png",&icons.GUI_D_UP.id,&icons.GUI_D_UP.width,&icons.GUI_D_UP.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/dpad-down.png",&icons.GUI_D_DOWN.id,&icons.GUI_D_DOWN.width,&icons.GUI_D_DOWN.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/dpad-left.png",&icons.GUI_D_LEFT.id,&icons.GUI_D_LEFT.width,&icons.GUI_D_LEFT.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/dpad-right.png",&icons.GUI_D_RIGHT.id,&icons.GUI_D_RIGHT.width,&icons.GUI_D_RIGHT.height);	
-	Utility::TxtLoadFromFile(basepath+"/gui/a-but.png",&icons.GUI_A_BUT.id,&icons.GUI_A_BUT.width,&icons.GUI_A_BUT.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/b-but.png",&icons.GUI_B_BUT.id,&icons.GUI_B_BUT.width,&icons.GUI_B_BUT.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/x-but.png",&icons.GUI_X_BUT.id,&icons.GUI_X_BUT.width,&icons.GUI_X_BUT.height);
-	Utility::TxtLoadFromFile(basepath+"/gui/y-but.png",&icons.GUI_Y_BUT.id,&icons.GUI_Y_BUT.width,&icons.GUI_Y_BUT.height);
-	*/
-	
-	
-#endif
 
 }
 
 CImgLoader::~CImgLoader(){
 
-#ifdef OPENGL_BACKEND
 
 	/* Home Icons */
 	
@@ -77,16 +51,24 @@ CImgLoader::~CImgLoader(){
 	glDeleteTextures(1, &icons.FolderTexture.id);
 	glDeleteTextures(1, &icons.FileTexture.id);
 	
-	glDeleteTextures(1, &icons.PlayIcon.id);
+	glDeleteTextures(1, &icons.FFIcon.id);
+	glDeleteTextures(1, &icons.RewIcon.id);
+	glDeleteTextures(1, &icons.PrevIcon.id);
+	glDeleteTextures(1, &icons.NextIcon.id);
 	glDeleteTextures(1, &icons.PauseIcon.id);
+
+	glDeleteTextures(1, &icons.Wav_Icon.id);
+	glDeleteTextures(1, &icons.Ogg_Icon.id);
+	glDeleteTextures(1, &icons.Flac_Icon.id);
+	glDeleteTextures(1, &icons.Mp3_Icon.id);
+
 	
-	icons.FolderTexture.id = 0;
-	icons.FileTexture.id = 0;
-	icons.PlayIcon.id = 0;
-	icons.PauseIcon.id = 0;
 	
+	icons.FolderTexture.id = -1;
+	icons.FileTexture.id = -1;
+	icons.PlayIcon.id = -1;
+	icons.PauseIcon.id = -1;
 	
-#endif
 
 
 	

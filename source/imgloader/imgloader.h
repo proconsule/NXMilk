@@ -60,6 +60,14 @@ typedef struct {
 	Tex VolumeIcon;
 	Tex LoopIcon;
 	Tex NoLoopIcon;
+	
+	/* Filetype Icons */
+	Tex Wav_Icon;
+	Tex Ogg_Icon;
+	Tex Mp3_Icon;
+	Tex Flac_Icon;
+	
+	
 		
 } nxmpicon_struct;
 	

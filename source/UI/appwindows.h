@@ -9,6 +9,7 @@
 #include "fsbrowser.h"
 #include "audioplayer.h"
 #include "imgloader.h"
+#include "utils.h"
 
 extern CFSBrowser * fsbrowser;
 extern CAudioPlayer * audioplayer;

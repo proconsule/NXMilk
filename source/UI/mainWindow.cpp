@@ -136,8 +136,21 @@ namespace Windows {
 						if(S_ISDIR(thislist[n].st.st_mode)){
 							ImGui::Image((void*)(intptr_t)imgloader->icons.FolderTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
 						}else{
-							ImGui::Image((void*)(intptr_t)imgloader->icons.FileTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
-						
+							if(Utility::endsWith(thislist[n].filename.c_str(),".wav",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.Wav_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
+							}else if(Utility::endsWith(thislist[n].filename.c_str(),".ogg",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.Ogg_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
+							}else if(Utility::endsWith(thislist[n].filename.c_str(),".mp3",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.Mp3_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
+							}else if(Utility::endsWith(thislist[n].filename.c_str(),".flac",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.Flac_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
+							}else{
+								ImGui::Image((void*)(intptr_t)imgloader->icons.FileTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							}
 						}
 						ImGui::SameLine();
 						float curx = ImGui::GetCursorPosX();
