@@ -24,6 +24,8 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/folder.png",&icons.FolderTexture.id,&icons.FolderTexture.width,&icons.FolderTexture.height);
 	TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);
 	
+	TxtLoadFromFile(basepath+"/usb.png",&icons.UsbTexture.id,&icons.UsbTexture.width,&icons.UsbTexture.height);
+	
 	TxtLoadFromFile(basepath+"/audioplayer/icons/play.png",&icons.PlayIcon.id,&icons.PlayIcon.width,&icons.PlayIcon.height);
 	TxtLoadFromFile(basepath+"/audioplayer/icons/pause.png",&icons.PauseIcon.id,&icons.PauseIcon.width,&icons.PauseIcon.height);
 	TxtLoadFromFile(basepath+"/audioplayer/icons/ff.png",&icons.FFIcon.id,&icons.FFIcon.width,&icons.FFIcon.height);

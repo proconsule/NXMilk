@@ -158,7 +158,7 @@ void USBMounter::usbMscTestDevices(void)
     }
 
     g_updated = false;
-
+	mounted_devs.clear();
     /* Print info from mounted devices. */
     for(u32 i = 0; i < g_usbDeviceCount; i++)
     {

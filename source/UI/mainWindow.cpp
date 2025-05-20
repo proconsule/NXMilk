@@ -57,6 +57,7 @@ namespace Windows {
 
 	void USBWindow() {
 		Windows::SetupMainWindow();
+		if(MyUSBMount != nullptr)MyUSBMount->usbMscTestDevices();
 		if (ImGui::Begin("USB Devices", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 			
 			
@@ -70,9 +71,23 @@ namespace Windows {
 						MyUSBMount->setBasePath(mountpath);
 						fsbrowser->DirList(mountpath,false,audioextensions);
 					}
-					ImGui::SameLine();
+					float currstartYpos = ImGui::GetCursorPosY();
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
+						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(40,40));
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(currstartYpos);
+						float currstartXpos = ImGui::GetCursorPosX();
+						std::string devname = Utility::trim(thislist[n].name)  + std::string(" -> ") + thislist[n].mount_point;
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
+						ImGui::Text("%s",devname.c_str());
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
+						ImGui::SetCursorPosX(currstartXpos);
+						ImGui::Text("%s %s",thislist[n].fstype.c_str(),Utility::humanSize(thislist[n].capacity).c_str());
+						ImGui::SetCursorPosY(currstartYpos);
+					//ImGui::SameLine();
 					
-					ImGui::Text("%s %s",MyUSBMount->mounted_devs[n].fstype.c_str(),humanSize(MyUSBMount->mounted_devs[n].capacity).c_str());
+					//ImGui::Text("%s %s",MyUSBMount->mounted_devs[n].fstype.c_str(),humanSize(MyUSBMount->mounted_devs[n].capacity).c_str());
 				}
 			}
 		

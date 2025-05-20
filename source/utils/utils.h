@@ -15,7 +15,10 @@ namespace Utility{
 	bool startWith(const std::string &str, const std::string &value, bool sensitive);
 	std::string toLower(const std::string &str);
 	std::string toUpper(const std::string &str);
-	
+	std::string humanSize(size_t bytes);
+	std::string ltrim(const std::string &s);
+	std::string rtrim(const std::string &s);
+	std::string trim(const std::string &s);
 	
 }
 

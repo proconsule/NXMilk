@@ -26,6 +26,9 @@ Features
 - OGG support (with metadata support if present)
 - FLAC support (with metadata support if present)
 - WAV support
+- AC3 support
+- AAC support
+- Many others (ffmpeg is great!) you can unfilter file extensions with config file ini 
 
 ### Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
 
