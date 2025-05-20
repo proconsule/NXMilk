@@ -4,7 +4,7 @@ NXMilk
 
 NXMilk is a trivial audio player for Nintendo Switch.
 
-It uses FFMpeg for audio decoding and projectM for the vis.
+It uses FFMpeg (with the help of some libs) for audio decoding and projectM for the vis.
 The GUI is made with ImGui.
 
 This project started as a test class for new audio player for NXMP
@@ -20,11 +20,12 @@ Features
 - Support Japanese,Chinese,Korean Cyrilic fonts
 - Can read from SD card and from USB storage
 
-### Supported Files
+### Supported Files (using ffmpeg)
 
 - MP3 support (with ID3 tag support)
 - OGG support (with metadata support if present)
 - FLAC support (with metadata support if present)
+- WAV support
 
 ### Supported Files using libopenmpt (https://lib.openmpt.org/libopenmpt/)
 
@@ -122,9 +123,15 @@ usebuiltinpreset = true
 
 Since file extensions for audio file can be very "exotic" starting from version 0.1.0 enabled extension can be added also on config file
 ```
+[AudioPlayer]
+startpath = /switch/NXMilk
+milkpresetspath = /switch/NXMilk/presets/milk/
+milktexturespath = /switch/NXMilk/presets/Textures/
+interfacehidesec = 10
+usebuiltinpreset = true
 enabled_extensions = .aac,.ac3,.wav
 ```
-NXMilk uses ffmpeg along with many other library so the supported files list is HUGE
+NXMilk uses ffmpeg along with many other libraries so the supported files list is HUGE
 
 
 NXMilk has some builtin presets. Can be disabled setting to false the usebuiltinpreset option
