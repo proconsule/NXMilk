@@ -12,11 +12,6 @@ sha256sums=(
   'SKIP'
 )
 
-prepare() {
-	 cd "libprojectM-${pkgver}"
-#  cd "libsmb2-${pkgver}"
-#  patch -Np1 -i "$srcdir/switch.patch"
-}
 
 build() {
   cd "libprojectM-${pkgver}"
@@ -25,12 +20,8 @@ build() {
   
   aarch64-none-elf-cmake -DCMAKE_INSTALL_PREFIX=$PORTLIBS_PREFIX \
     -DCMAKE_C_FLAGS="$CFLAGS $CPPFLAGS" \
-    -DCMAKE_CXX_FLAGS="$CFLAGS" \
-  #./bootstrap
-
-  #./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
-  #  --disable-shared --enable-static --without-libkrb5 --disable-werror
-
+    -DCMAKE_CXX_FLAGS="$CFLAGS" 
+	
   make
 }
 
@@ -40,5 +31,5 @@ package() {
   source /opt/devkitpro/switchvars.sh
 
   make DESTDIR="${pkgdir}" install
-  #install -Dm644 COPYING "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
+  install -Dm644 COPYING "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
 }
