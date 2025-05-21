@@ -69,6 +69,7 @@ namespace Windows {
 					if (ImGui::Selectable(itemid.c_str(), selected == n,0, ImVec2(0, 60))){
 						std::string mountpath = thislist[n].mount_point + std::string("/");
 						MyUSBMount->setBasePath(mountpath);
+						menuitem.state = MENU_STATE_FILEBROWSER;
 						fsbrowser->DirList(mountpath,false,audioextensions);
 					}
 					float currstartYpos = ImGui::GetCursorPosY();
@@ -98,15 +99,118 @@ namespace Windows {
 		
 		
 	}
+	
+	
+	void HomeWindow() {
+        Windows::SetupWindow();
+		
+		char apptitlechar[256] = {0};
+		//sprintf(apptitlechar,"NXMilk");
+		sprintf(apptitlechar,"NXMilk v%d.%d.%d",VERSION_MAJOR,VERSION_MINOR,VERSION_MICRO);
+		
+		if (ImGui::Begin(apptitlechar, nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {0, 5});
+			
+			if (ImGui::BeginTable("##table1", 2)){
+				ImGui::TableSetupColumn("icon", ImGuiTableColumnFlags_WidthFixed, ((80.0f+ImGui::GetStyle().FramePadding.x) *multiplyRes -2 * ImGui::GetStyle().ItemSpacing.x)); 
+				ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthStretch); 
+				
+				static int selected = -1;	
+				std::vector<std::string> menustrings = {"SD Card","USB","Network","Exit"};
+				for (unsigned int n = 0; n <  menustrings.size(); n++){
+					ImGui::TableNextRow();
+					std::string itemid = "##" + std::to_string(n);
+					ImGui::TableSetColumnIndex(0);
+					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, ImGui::GetStyle().CellPadding.y * 2)); // Fix
+    				
+					//if(n == MM_UPNP)ImGui::BeginDisabled();
+					
+					
+					if(n == 0){
+						ImGui::Image((void*)(intptr_t)imgloader->icons.SdCardTexture.id, ImVec2(50,50));
+					}
+					else if(n == 1){
+						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(50,50));
+					}
+					else if(n == 2){
+						ImGui::Image((void*)(intptr_t)imgloader->icons.NetworkTexture.id, ImVec2(50,50));
+					}
+					else if(n == 3){
+						ImGui::Image((void*)(intptr_t)imgloader->icons.ExitTexture.id, ImVec2(50,50));
+					}
+					 
+					ImGui::SameLine();
+					ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns;
+							
+					if (ImGui::Selectable(itemid.c_str(), selected == n,selectable_flags,ImVec2(1280*multiplyRes,50*multiplyRes))){
+						if(n == 0){
+							menuitem.state = MENU_STATE_FILEBROWSER;
+							fsbrowser = new CFSBrowser(configini->getStartPath());
+							fsbrowser->DirList(configini->getStartPath(),true,audioextensions);
+							
+						}
+						if(n == 1){
+							if(MyUSBMount==nullptr){
+								MyUSBMount=new USBMounter();
+							}
+							menuitem.state = MENU_STATE_USB;
+							//fsbrowser = new CFSBrowser(MyUSBMount->getBasePath());
+							//fsbrowser->DirList(fsbrowser->getCurrentPath(),true,audioextensions);
+							
+						}
+						if(n == 2){
+							menuitem.state = MENU_STATE_NETWORKSEL;
+													
+						}
+						if(n == 3){
+							
+							menuitem.state = MENU_STATE_EXIT;
+							
+							
+							//
+						}
+						
+
+
+					}
+							
+															
+					ImGui::TableSetColumnIndex(1);
+					
+					ImGui::SetCursorPos({ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + ((50*multiplyRes) - ImGui::GetFont()->FontSize) / 2});
+					
+					
+					
+					
+					
+					//ImGui::SetCursorPos({ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + ((50*multiplyRes) - ImGui::GetFont()->FontSize) / 2});
+					
+					ImGui::Text("%s",menustrings[n].c_str());
+					
+					ImGui::PopStyleVar();
+					
+					//if(n == MM_UPNP)ImGui::EndDisabled();
+					
+				}
+				
+				ImGui::EndTable();
+				ImGui::PopStyleVar();
+			}	
+		}
+		
+		Windows::ExitMainWindow();
+		
+	}
+	
 
 	void MainMenuWindow() {
 		Windows::SetupMainWindow();
 	
 		//std::vector<std::string> thislist;
-		char apptitlechar[256] = {0};
+		//char apptitlechar[256] = {0};
 		//sprintf(apptitlechar,"NXMilk");
-		sprintf(apptitlechar,"NXMilk v%d.%d.%d",VERSION_MAJOR,VERSION_MINOR,VERSION_MICRO);
-		if (ImGui::Begin(apptitlechar, nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
+		//sprintf(apptitlechar,"NXMilk v%d.%d.%d",VERSION_MAJOR,VERSION_MINOR,VERSION_MICRO);
+		if (ImGui::Begin(fsbrowser->getCurrentPath().c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {0, 5});
 			//ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.26f, 0.59f, 0.98f, 0.00f));
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, nxmpgfx::NavHover_color);

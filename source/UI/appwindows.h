@@ -14,10 +14,31 @@
 extern CFSBrowser * fsbrowser;
 extern CAudioPlayer * audioplayer;
 extern CImgLoader *imgloader;
+extern CIniParser *configini;
 
 extern std::vector<std::string> audioextensions;
 
 extern float multiplyRes;
+
+enum MENU_STATES {
+	MENU_STATE_HOME,
+    MENU_STATE_FILEBROWSER,
+	MENU_STATE_USB,
+	MENU_STATE_NETWORKSEL,
+	MENU_STATE_EXIT
+	
+};
+
+typedef struct menuitem_struct{
+	MENU_STATES state;
+	
+};
+
+
+extern menuitem_struct menuitem;
+
+
+
 
 namespace Windows {
 	
@@ -63,7 +84,9 @@ inline void SetupWindow(void) {
     };
 	
 	void MainMenuWindow();
+	void HomeWindow();
 	void USBWindow();
+	void NetworkWindow();
 	
 	void PlayerWindow();
 	

@@ -51,7 +51,47 @@ bool endsWith(const std::string &value, const std::string &ending, bool sensitiv
 
 
 CFSBrowser::CFSBrowser(std::string initialpath){
-	currentpath = initialpath;
+	basepath = initialpath;
+	currentpath = basepath;
+}
+
+CFSBrowser::CFSBrowser(networkstruct_v2 netconfdata){
+	
+	if(netconfdata.type == "sftp"){
+		if(netconfdata.password != ""){
+			SSHFS = new CSSHFS(netconfdata.server,netconfdata.port,netconfdata.username,netconfdata.password,netconfdata.path,"ssh0","ssh0:");
+			connected = SSHFS->RegisterFilesystem_v2();
+		}else if(netconfdata.pubkeypath != ""){
+			SSHFS = new CSSHFS(netconfdata.server,netconfdata.port,netconfdata.username,netconfdata.pubkeypath,netconfdata.privkeypath,netconfdata.passphrase,netconfdata.path,"ssh0","ssh0:");
+			connected = SSHFS->RegisterFilesystem_pubkey_v2();
+			
+		}
+		basepath = "ssh0:/";
+		currentpath = basepath;
+		title = "SFTP Browser " + netconfdata.server;
+			
+	}
+	
+	if(netconfdata.type == "smb"){
+			
+		SMB2FS = new CSMB2FS(netconfdata.server,netconfdata.username,netconfdata.password,netconfdata.path,"smb0","smb0:");
+		connected = SMB2FS->RegisterFilesystem_v2();
+		basepath = "smb0:/";
+		currentpath = basepath;
+		title = "SMB Browser " + netconfdata.server;
+			
+	}
+		
+	if(netconfdata.type == "nfs"){
+			
+		NFSFS = new CNFSFS(netconfdata.server,netconfdata.path,"nfs0","nfs0:");
+		connected = NFSFS->RegisterFilesystem_v2();
+		basepath = "nfs0:/";
+		currentpath = basepath;
+		title = "NFS Browser " + netconfdata.server;
+			
+	}
+	
 }
 
 void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std::string> &extensions){
@@ -198,7 +238,20 @@ std::string CFSBrowser::getPrevFile(std::string _filename){
 
 std::string CFSBrowser::backDir(){
 	std::string relpath = currentpath.substr(currentpath.find_last_of("\\/")+1);
+			
 	currentpath = currentpath.substr(0, currentpath.find_last_of("\\/"));
+	int pos = currentpath.find_last_of("\\/");
+	if(pos<0)currentpath = currentpath+"/";
+	
 	if(currentpath == "")currentpath = "/";
 	return relpath;
+}
+
+
+CFSBrowser::~CFSBrowser(){
+	
+	if(SSHFS != nullptr)delete SSHFS;
+	if(SMB2FS != nullptr)delete SMB2FS;
+	if(NFSFS != nullptr)delete NFSFS;
+	
 }

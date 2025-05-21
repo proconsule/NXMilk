@@ -17,6 +17,21 @@ typedef struct{
 	
 }audioplayerconfig_struct;
 
+struct networkstruct_v2{
+	std::string name = "";
+	std::string server = "";
+	std::string type = "";
+	std::string username = "";
+	std::string password = "";
+	std::string path = "";
+	std::string pubkeypath = "";
+	std::string privkeypath = "";
+	std::string passphrase = "";
+	int port = 0;
+};
+
+
+
 
 class CIniParser{
 public:
@@ -28,6 +43,7 @@ public:
 	audioplayerconfig_struct getAudioPlayerConfig();
 	std::vector<std::string> getConfigExtensions();
 	
+	std::vector<networkstruct_v2> getNetworks();
 	
 protected:
 	std::string filename;
@@ -37,6 +53,7 @@ protected:
 	bool opened = false;
 	
 	std::vector<std::string> config_enabled_extensions;
+	std::vector<networkstruct_v2> networks_v2;
 	
 	mINI::INIFile *fileref;
 	mINI::INIStructure inidata;

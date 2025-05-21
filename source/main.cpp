@@ -62,7 +62,18 @@ extern u32 __nx_applet_exit_mode;
 
 USBMounter *MyUSBMount = nullptr;
 
+
+
+
+
 bool USBDialog = false;
+
+
+
+
+
+menuitem_struct menuitem;
+
 
 
 int
@@ -98,6 +109,7 @@ main(int argc, const char* const* argv) {
 		return 0;
 	}
 	
+	menuitem.state = MENU_STATE_HOME;
 	
 	std::vector<std::string> trackermerge;
 	
@@ -202,15 +214,7 @@ main(int argc, const char* const* argv) {
 			if(audioplayer->Running()){
 				audioplayer->ToogleVis();
 			}else{
-				if(MyUSBMount == nullptr){
-					MyUSBMount = new USBMounter();
-					
-				}
-				USBDialog = !USBDialog;
-				if(!USBDialog){
-					fsbrowser->DirList(configini->getStartPath(),false,audioextensions);
-					MyUSBMount->setBasePath("");
-				}
+				menuitem.state = MENU_STATE_HOME;
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_B)){
@@ -222,7 +226,7 @@ main(int argc, const char* const* argv) {
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_PLUS)){
-			break;
+			//break;
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_R)){
 			audioplayer->Seek(5);
@@ -242,15 +246,26 @@ main(int argc, const char* const* argv) {
 		}
 		
 		
+		
 		nxmpgfx::NewFrame();
         ImGui::NewFrame();
 		
 		if(!audioplayer->Running()){
-			if(USBDialog && MyUSBMount->getBasePath() == ""){
-				Windows::USBWindow();
-			}else{
+			if(menuitem.state == MENU_STATE_HOME){
+				Windows::HomeWindow();
+			}else if(menuitem.state == MENU_STATE_FILEBROWSER){
 				Windows::MainMenuWindow();
-			}		
+			}else if(menuitem.state == MENU_STATE_USB){
+				Windows::USBWindow();
+			}else if(menuitem.state == MENU_STATE_NETWORKSEL){
+				Windows::NetworkWindow();
+			}
+				
+			//if(USBDialog && MyUSBMount->getBasePath() == ""){
+			//	Windows::USBWindow();
+			//}else{
+			//	Windows::MainMenuWindow();
+			//}		
 		}
 		if(audioplayer->Running()){
 			Windows::PlayerWindow();
@@ -267,6 +282,8 @@ main(int argc, const char* const* argv) {
 		
 		
 		counter++;
+		
+		if(menuitem.state == MENU_STATE_EXIT)break;
     }
 
     

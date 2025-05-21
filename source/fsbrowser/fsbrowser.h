@@ -13,7 +13,11 @@
 #include <algorithm>
 
 #include <switch.h>
+#include "iniParser.h"
 
+#include "sshfs.h"
+#include "smb2fs.h"
+#include "nfsfs.h"
 
 typedef struct{
 	std::string filename;
@@ -24,6 +28,8 @@ typedef struct{
 class CFSBrowser{
 public:
 	CFSBrowser(std::string initialpath);
+	CFSBrowser(networkstruct_v2 netconfdata);
+	~CFSBrowser();
 	void DirList(std::string path,bool showHidden,const std::vector<std::string> &extensions);
 	std::vector<fsentry_struct> getCurrList();
 	std::string getCurrentPath();
@@ -39,6 +45,12 @@ private:
 	std::vector<fsentry_struct> audiofilelist;
 	std::string currentpath;
 	std::string basepath;
+	
+	CSSHFS *SSHFS = nullptr;
+	CSMB2FS *SMB2FS = nullptr;
+	CNFSFS *NFSFS = nullptr;
+	bool connected = false;
+	std::string title = "";
 	
 	
 };

@@ -25,6 +25,10 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/file.png",&icons.FileTexture.id,&icons.FileTexture.width,&icons.FileTexture.height);
 	
 	TxtLoadFromFile(basepath+"/usb.png",&icons.UsbTexture.id,&icons.UsbTexture.width,&icons.UsbTexture.height);
+	TxtLoadFromFile(basepath+"/sftp.png",&icons.SFTPTexture.id,&icons.SFTPTexture.width,&icons.SFTPTexture.height);
+	TxtLoadFromFile(basepath+"/smb.png",&icons.SMBTexture.id,&icons.SMBTexture.width,&icons.SMBTexture.height);
+	TxtLoadFromFile(basepath+"/nfs.png",&icons.NFSTexture.id,&icons.NFSTexture.width,&icons.NFSTexture.height);
+	
 	
 	TxtLoadFromFile(basepath+"/audioplayer/icons/play.png",&icons.PlayIcon.id,&icons.PlayIcon.width,&icons.PlayIcon.height);
 	TxtLoadFromFile(basepath+"/audioplayer/icons/pause.png",&icons.PauseIcon.id,&icons.PauseIcon.width,&icons.PauseIcon.height);
@@ -38,6 +42,10 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/flac-file.png",&icons.Flac_Icon.id,&icons.Flac_Icon.width,&icons.Flac_Icon.height);
 	TxtLoadFromFile(basepath+"/mp3-file.png",&icons.Mp3_Icon.id,&icons.Mp3_Icon.width,&icons.Mp3_Icon.height);
 	
+	TxtLoadFromFile(basepath+"/sdcard.png",&icons.SdCardTexture.id,&icons.SdCardTexture.width,&icons.SdCardTexture.height);
+	
+	TxtLoadFromFile(basepath+"/network.png",&icons.NetworkTexture.id,&icons.NetworkTexture.width,&icons.NetworkTexture.height);
+	TxtLoadFromFile(basepath+"/exit.png",&icons.ExitTexture.id,&icons.ExitTexture.width,&icons.ExitTexture.height);
 	
 
 }
