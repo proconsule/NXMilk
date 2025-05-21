@@ -208,7 +208,7 @@ main(int argc, const char* const* argv) {
 				}
 				USBDialog = !USBDialog;
 				if(!USBDialog){
-					fsbrowser->DirList("/switch/nxmp",false,audioextensions);
+					fsbrowser->DirList(configini->getStartPath(),false,audioextensions);
 					MyUSBMount->setBasePath("");
 				}
 			}
