@@ -135,7 +135,7 @@ usebuiltinpreset = true
 enabled_extensions = .aac,.ac3,.wav
 ```
 
-###Network 
+### Network 
 from version 0.2.0 NXMilk support network connections
 
 
