@@ -25,7 +25,7 @@ public:
 	void NextVisPreset();
 	void PrevVisPreset();
 	
-	void ToogleVis();
+	bool ToogleVis();
 	bool VisEnabled();
 	
 	std::vector<std::string> getPlaylistItems();

@@ -1,59 +1,5 @@
 #include "fsbrowser.h"
-
-std::string toLower(const std::string &str) {
-		std::string ret = str;
-		std::transform(ret.begin(), ret.end(), ret.begin(),[](unsigned char c) { return std::tolower(c); });
-		return ret;
-	}
-
-std::string toUpper(const std::string &str) {
-		std::string ret = str;
-		std::transform(ret.begin(), ret.end(), ret.begin(),[](unsigned char c) { return std::toupper(c); });
-		return ret;
-	}
-	
-std::string removeLastSlash(const std::string &string) {
-
-    std::string str = string;
-    size_t pos = str.find_last_of('/');
-    if (pos == str.length() - 1) {
-        str.erase(str.length() - 1);
-    }
-	return str;
-}
-
-bool SortNameAsc(const fsentry_struct &entryA, const fsentry_struct &entryB){
-	if ((S_ISDIR(entryA.st.st_mode)) && !(S_ISDIR(entryB.st.st_mode)))
-			return true;
-		else if (!(S_ISDIR(entryA.st.st_mode)) && (S_ISDIR(entryB.st.st_mode)))
-			return false;
-		else {
-			if (strcasecmp(entryA.filename.c_str(), entryB.filename.c_str()) < 0)
-				return true;
-					
-		}
-		
-		return false;
-}
-
-bool endsWith(const std::string &value, const std::string &ending, bool sensitive) {
-		if (ending.size() > value.size()) return false;
-		if (sensitive) {
-			return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-		} else {
-			std::string val_low = toLower(value);
-			std::string end_low = toLower(ending);
-			return std::equal(end_low.rbegin(), end_low.rend(), val_low.rbegin());
-		}
-	}
-
-
-
-
-CFSBrowser::CFSBrowser(std::string initialpath){
-	basepath = initialpath;
-	currentpath = basepath;
-}
+#include "utils.h"
 
 CFSBrowser::CFSBrowser(networkstruct_v2 netconfdata){
 	
@@ -92,6 +38,42 @@ CFSBrowser::CFSBrowser(networkstruct_v2 netconfdata){
 			
 	}
 	
+}
+
+
+
+bool SortNameAsc(const fsentry_struct &entryA, const fsentry_struct &entryB){
+	if ((S_ISDIR(entryA.st.st_mode)) && !(S_ISDIR(entryB.st.st_mode)))
+			return true;
+		else if (!(S_ISDIR(entryA.st.st_mode)) && (S_ISDIR(entryB.st.st_mode)))
+			return false;
+		else {
+			if (strcasecmp(entryA.filename.c_str(), entryB.filename.c_str()) < 0)
+				return true;
+					
+		}
+		
+		return false;
+}
+
+bool endsWith(const std::string &value, const std::string &ending, bool sensitive) {
+		if (ending.size() > value.size()) return false;
+		if (sensitive) {
+			return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+		} else {
+			std::string val_low = Utility::toLower(value);
+			std::string end_low = Utility::toLower(ending);
+			return std::equal(end_low.rbegin(), end_low.rend(), val_low.rbegin());
+		}
+	}
+
+
+
+
+CFSBrowser::CFSBrowser(std::string initialpath,std::string _title){
+	basepath = initialpath;
+	currentpath = basepath;
+	title = _title;
 }
 
 void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std::string> &extensions){
@@ -140,7 +122,7 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 								
 								FsTimeStampRaw timestamp = {0};
 								char safe_buf[FS_MAX_PATH];
-								std::string fullpath = removeLastSlash(path) + "/" + fsentry.filename;
+								std::string fullpath = Utility::removeLastSlash(path) + "/" + fsentry.filename;
 								strcpy(safe_buf, fullpath.c_str());
 								fsFsGetFileTimeStampRaw(&sdmc, safe_buf, &timestamp);
 								fsentry.st.st_atime = timestamp.accessed;
@@ -253,5 +235,63 @@ CFSBrowser::~CFSBrowser(){
 	if(SSHFS != nullptr)delete SSHFS;
 	if(SMB2FS != nullptr)delete SMB2FS;
 	if(NFSFS != nullptr)delete NFSFS;
+	if(CUEBINFS != nullptr)delete CUEBINFS;
 	
+}
+
+void CFSBrowser::OpenArchive(std::string _path){
+		oldtitle = title;
+		oldmount = currentpath;
+		title = "Compressed Archive - " + _path.substr(_path.find_last_of("/") + 1);
+		ARCHFS = new CARCHFS(_path,"arc0","arc0:");
+		connected = ARCHFS->is_connected;
+		basepath = ARCHFS->mount_name+"/";
+		currentpath = ARCHFS->mount_name+"/";
+		filemount = true;
+		
+	}
+
+void CFSBrowser::OpeCueFile(std::string _path){
+	
+	oldtitle = title;
+	oldmount = currentpath;
+	title = "Disc Image - " + _path.substr(_path.find_last_of("/") + 1);
+	CUEBINFS = new CCUEBINFS(_path,"ncd0","ncd0:");
+	connected = true;
+	basepath = CUEBINFS->mount_name + "/";
+	currentpath = CUEBINFS->mount_name + "/";
+	filemount = true;
+}
+
+void CFSBrowser::OpeISO9660File(std::string _path){
+	
+	oldtitle = title;
+	oldmount = currentpath;
+	title = "ISO9660 Disck Image - " + _path.substr(_path.find_last_of("/") + 1);
+	ISO9660FS = new CISO9660FS(_path,"iso0","iso0:");
+	connected = true;
+	basepath = ISO9660FS->mount_name + "/";
+	currentpath = ISO9660FS->mount_name + "/";
+	filemount = true;
+	
+}
+
+void CFSBrowser::CloseFilesMount(){
+	title = oldtitle;
+	currentpath = oldmount;
+	basepath = currentpath;
+	
+	if(CUEBINFS != nullptr){
+		delete CUEBINFS;
+		CUEBINFS = nullptr;
+	}
+	if(ARCHFS != nullptr){
+		delete ARCHFS;
+		ARCHFS = nullptr;
+	}
+	if(ISO9660FS != nullptr){
+		delete ISO9660FS;
+		ISO9660FS = nullptr;
+	}
+	filemount = false;
 }

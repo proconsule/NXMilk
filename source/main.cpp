@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <signal.h>
 
-
+#include "devoptabfs_defines.h"
 
 #include <sys/time.h>
 
@@ -48,7 +48,7 @@ CIniParser* configini;
 float multiplyRes = 1.0f;
 bool isHandheld = true;
 
-std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".wav",".m4a"};
+std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".wav",".m4a",".cue",".rar",".zip",".tar.gz",".iso"};
 
 
 std::vector<std::string> libopenmptext = {"669",".amf",".ams",".dbm",".digi",".dmf",".dsm",".far",".gdm",".ice",".imf",".it",".j2b",".m15",".mdl",".med",".mmcmp",".mms",".mo3",".mod",".mptm",".mt2",".mtm",".nst",".okt",".plm",".ppm",".psm",".pt36",".ptm",".s3m",".sfx",".sfx2",".st26",".stk",".stm",".ult",".umx",".wow",".xm",".xpk"};
@@ -68,11 +68,14 @@ USBMounter *MyUSBMount = nullptr;
 
 bool USBDialog = false;
 
-
+bool BackLightToggle = true;
 
 
 
 menuitem_struct menuitem;
+
+bool slaveplayer=false;
+std::string slaveplayer_file = "";
 
 
 
@@ -82,6 +85,12 @@ main(int argc, const char* const* argv) {
 	
 	appletLockExit();
 	romfsInit();
+	
+	if(argc>1){
+		slaveplayer=true;
+		slaveplayer_file = argv[1];
+	}
+	
 	
 	
 	AppletOperationMode stus=appletGetOperationMode();
@@ -110,6 +119,9 @@ main(int argc, const char* const* argv) {
 	}
 	
 	menuitem.state = MENU_STATE_HOME;
+	
+	if(slaveplayer)menuitem.state = MENU_STATE_GUILESS;
+	
 	
 	std::vector<std::string> trackermerge;
 	
@@ -178,18 +190,25 @@ main(int argc, const char* const* argv) {
 
 	audioplayer = new CAudioPlayer(1280.0f*multiplyRes,720.0f*multiplyRes,configini->getAudioPlayerConfig());
 	
-	fsbrowser = new CFSBrowser("");
+	//fsbrowser = new CFSBrowser("","");
 	nxmpgfx::updateSplash(100);
 
 	
 
-	fsbrowser->DirList(configini->getStartPath(),false,audioextensions);
+	//fsbrowser->DirList(configini->getStartPath(),false,audioextensions);
 
 #ifdef __SWITCH__	
 
 	appletSetMediaPlaybackState(true);
 
 	uint32_t counter = 0;
+	
+	if(slaveplayer){
+		bool loaded = audioplayer->LoadFile(slaveplayer_file.c_str());
+		if(loaded){
+			audioplayer->Play();
+		}
+	}
 
 	while(appletMainLoop() && !nxmpgfx::WindowShouldClose())
     {
@@ -210,10 +229,25 @@ main(int argc, const char* const* argv) {
 		if(is_bit_set(event_ret,nxmpgfx::BUT_A)){
 			Windows::UserActivity();
 		}
+		if(is_bit_set(event_ret,nxmpgfx::BUT_X)){
+			if(menuitem.state == MENU_STATE_FILEBROWSER ){
+				if(fsbrowser != nullptr){
+					if(fsbrowser->filemount){
+						fsbrowser->CloseFilesMount();
+						fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+					}
+				}
+			}
+		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_Y)){
 			if(audioplayer->Running()){
-				audioplayer->ToogleVis();
+				bool retvis = audioplayer->ToogleVis();
+				
 			}else{
+				if(fsbrowser != nullptr){
+					delete fsbrowser;
+					fsbrowser = nullptr;
+				}
 				menuitem.state = MENU_STATE_HOME;
 			}
 		}
@@ -226,7 +260,13 @@ main(int argc, const char* const* argv) {
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_PLUS)){
-			//break;
+			if(BackLightToggle){
+					Utility::BackLightOff();
+					BackLightToggle = false;
+				}else{
+					Utility::BackLightOn();
+					BackLightToggle = true;
+				}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_R)){
 			audioplayer->Seek(5);
@@ -260,12 +300,6 @@ main(int argc, const char* const* argv) {
 			}else if(menuitem.state == MENU_STATE_NETWORKSEL){
 				Windows::NetworkWindow();
 			}
-				
-			//if(USBDialog && MyUSBMount->getBasePath() == ""){
-			//	Windows::USBWindow();
-			//}else{
-			//	Windows::MainMenuWindow();
-			//}		
 		}
 		if(audioplayer->Running()){
 			Windows::PlayerWindow();
@@ -284,6 +318,8 @@ main(int argc, const char* const* argv) {
 		counter++;
 		
 		if(menuitem.state == MENU_STATE_EXIT)break;
+		
+		if(menuitem.state == MENU_STATE_GUILESS && !audioplayer->Running())break;
     }
 
     

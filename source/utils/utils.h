@@ -19,7 +19,11 @@ namespace Utility{
 	std::string ltrim(const std::string &s);
 	std::string rtrim(const std::string &s);
 	std::string trim(const std::string &s);
+	std::string removeLastSlash(const std::string &string);
+	bool isArchiveExtension(std::string path);
 	
+	bool BackLightOff();
+	bool BackLightOn();
 }
 
 

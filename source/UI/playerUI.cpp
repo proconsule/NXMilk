@@ -28,6 +28,7 @@ namespace Windows {
 		if(g.Time - imgControlsHide < configini->getAudioPlayerConfig().interfacehidesec){
 			if(g.Time - imgControlsHide > configini->getAudioPlayerConfig().interfacehidesec-2 ){
 				textfadealpha = textfadealpha-0.016;
+				
 			}
 		
 		}

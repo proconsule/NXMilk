@@ -134,6 +134,46 @@ interfacehidesec = 10
 usebuiltinpreset = true
 enabled_extensions = .aac,.ac3,.wav
 ```
+
+Network from version 0.2.0 NXMilk support network connections
+
+
+For SMB
+
+```
+[Samba Test]
+server = 192.168.1.1
+type = smb
+username = USERNAME
+password = PASSWORD
+path = SHAREPATH
+```
+
+For ssh/sftp
+
+```
+[SSH Test]
+server = 192.168.1.1
+type = sftp
+username = USERNAME
+password = PASSWORD
+path = REMOTEPATH
+port = 22
+```
+
+sftp can also use pub/priv key for auth
+
+```
+[SSH Test]
+server = 192.168.1.1
+type = sftp
+username = USERNAME
+path = REMOTEPATH
+pubkeypath = /switch/nxmp/sshkey/id_rsa.pub
+privkeypath = /switch/nxmp/sshkey/id_rsa
+port = 22
+```
+
 NXMilk uses ffmpeg along with many other libraries so the supported files list is HUGE
 
 
@@ -148,6 +188,7 @@ Presets
 Libraries used in this project
 -----
 - FFMpeg https://ffmpeg.org/
+- libusbhsfs https://github.com/DarkMatterCore/libusbhsfs 
 - ImGui https://github.com/ocornut/imgui
 - projectM https://github.com/projectM-visualizer/projectm
 - libopenmpt https://lib.openmpt.org/libopenmpt/

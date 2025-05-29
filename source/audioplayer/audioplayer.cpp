@@ -342,8 +342,8 @@ void CAudioPlayer::PrevVisPreset(){
 	nxmpaudioctx.pmvis->PrevVisPreset();
 }
 
-void CAudioPlayer::ToogleVis(){
-	nxmpaudioctx.pmvis->ToogleVis();
+bool CAudioPlayer::ToogleVis(){
+	return nxmpaudioctx.pmvis->ToogleVis();
 }
 
 bool CAudioPlayer::VisEnabled(){

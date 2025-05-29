@@ -1,5 +1,10 @@
 #include "utils.h"
 
+extern "C"{
+#include <switch/services/lbl.h>
+};
+#include <switch.h>
+
 namespace Utility{
 	
 	const std::string WHITESPACE = " \n\r\t\f\v";
@@ -71,5 +76,50 @@ namespace Utility{
 		return rtrim(ltrim(s));
 	}
 
+
+	std::string removeLastSlash(const std::string &string) {
+
+		std::string str = string;
+		size_t pos = str.find_last_of('/');
+		if (pos == str.length() - 1) {
+			str.erase(str.length() - 1);
+		}
+		return str;
+	}
+	
+	bool isArchiveExtension(std::string path){
+		if(Utility::endsWith(path,".zip",false) || Utility::endsWith(path,".rar",false) || Utility::endsWith(path,".tar",false) || Utility::endsWith(path,".gz",false)){
+			return true;
+		}
+											
+		return false;
+	}
+	
+	
+	bool BackLightOff(){
+		int rc = lblInitialize();
+		if (R_FAILED(rc))
+                return false;
+		lblSwitchBacklightOff(1ul);
+		lblExit();
+		return true;
+		
+		
+	}
+	
+	bool BackLightOn(){
+		int rc = lblInitialize();
+		if (R_FAILED(rc))
+                return false;
+		lblSwitchBacklightOn(1ul);
+		lblExit();
+		return true;
+		
+		
+	}
+	
+	
+	 
+	
 	
 }

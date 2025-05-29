@@ -70,6 +70,7 @@ namespace Windows {
 						std::string mountpath = thislist[n].mount_point + std::string("/");
 						MyUSBMount->setBasePath(mountpath);
 						menuitem.state = MENU_STATE_FILEBROWSER;
+						fsbrowser = new CFSBrowser(mountpath,"USB Browser " + mountpath);
 						fsbrowser->DirList(mountpath,false,audioextensions);
 					}
 					float currstartYpos = ImGui::GetCursorPosY();
@@ -145,7 +146,7 @@ namespace Windows {
 					if (ImGui::Selectable(itemid.c_str(), selected == n,selectable_flags,ImVec2(1280*multiplyRes,50*multiplyRes))){
 						if(n == 0){
 							menuitem.state = MENU_STATE_FILEBROWSER;
-							fsbrowser = new CFSBrowser(configini->getStartPath());
+							fsbrowser = new CFSBrowser(configini->getStartPath(),"Local Browser");
 							fsbrowser->DirList(configini->getStartPath(),true,audioextensions);
 							
 						}
@@ -206,13 +207,11 @@ namespace Windows {
 	void MainMenuWindow() {
 		Windows::SetupMainWindow();
 	
-		//std::vector<std::string> thislist;
-		//char apptitlechar[256] = {0};
-		//sprintf(apptitlechar,"NXMilk");
-		//sprintf(apptitlechar,"NXMilk v%d.%d.%d",VERSION_MAJOR,VERSION_MINOR,VERSION_MICRO);
-		if (ImGui::Begin(fsbrowser->getCurrentPath().c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
+		if (ImGui::Begin(fsbrowser->title.c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar )) {
+			float total_w = ImGui::GetContentRegionAvail().x;
+			float total_h = ImGui::GetContentRegionAvail().y;
+			
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {0, 5});
-			//ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.26f, 0.59f, 0.98f, 0.00f));
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, nxmpgfx::NavHover_color);
 			ImGui::PushStyleColor(ImGuiCol_NavHighlight, nxmpgfx::Active_color);
 			
@@ -221,7 +220,8 @@ namespace Windows {
 				ImGui::EndMenuBar();
 			}
 		
-		
+			ImGui::BeginChild("##tablecontainer",ImVec2(total_w,total_h-45*multiplyRes));
+			ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns;
 			if (ImGui::BeginTable("table1", 3,/*ImGuiTableFlags_RowBg|*/ImGuiTableFlags_ScrollY)){
 					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, (910.0f*multiplyRes -2 * ImGui::GetStyle().ItemSpacing.x)); 
 					ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 125.0f*multiplyRes);
@@ -267,6 +267,12 @@ namespace Windows {
 							}else if(Utility::endsWith(thislist[n].filename.c_str(),".flac",false)){
 								ImGui::Image((void*)(intptr_t)imgloader->icons.Flac_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							
+							}else if(Utility::endsWith(thislist[n].filename.c_str(),".cue",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.CDImage_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
+							}else if(Utility::endsWith(thislist[n].filename.c_str(),".iso",false)){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.CDImage_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							
 							}else{
 								ImGui::Image((void*)(intptr_t)imgloader->icons.FileTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							}
@@ -279,11 +285,25 @@ namespace Windows {
 						if (ImGui::Selectable(itemid.c_str(), false,selectable_flags,ImVec2(0,30.0f*multiplyRes))){
 							if(!S_ISDIR(thislist[n].st.st_mode)){
 								std::string openfilename = fsbrowser->getCurrentPath()+"/"+thislist[n].filename;
-								printf("AAA: %s\n",openfilename.c_str());
-								bool loaded = audioplayer->LoadFile(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
-								if(loaded){
-									audioplayer->Play();
+								if(Utility::endsWith(thislist[n].filename.c_str(),".cue",false)){
+									fsbrowser->OpeCueFile(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
+									fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+									
+								}else if(Utility::endsWith(thislist[n].filename.c_str(),".iso",false)){
+									fsbrowser->OpeISO9660File(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
+									fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+									
+								}else if(Utility::isArchiveExtension(fsbrowser->getCurrentPath()+"/"+thislist[n].filename)){
+									fsbrowser->OpenArchive(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
+									fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+									
+								} else {
+									bool loaded = audioplayer->LoadFile(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
+									if(loaded){
+										audioplayer->Play();
+									}
 								}
+								
 							}else{
 								fsbrowser->DirList(removeLastSlash(fsbrowser->getCurrentPath()) +"/"+ thislist[n].filename,false,audioextensions);
 							}
@@ -311,6 +331,45 @@ namespace Windows {
 			ImGui::PopStyleVar();
 			ImGui::PopStyleColor(2);
 			}
+			ImGui::EndChild();
+			
+			ImGui::BeginChild("##helpchild",ImVec2(total_w,ImGui::GetContentRegionAvail().y));
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+				
+			ImGui::Dummy(ImVec2(0,5));
+			ImVec2 startpos =  ImGui::GetCursorScreenPos();
+			ImGui::Dummy(ImVec2(0,5));
+			ImGui::Text(FONT_DPADUP_BUTTON_FILLED);
+			ImGui::SameLine();
+			ImGui::Text(FONT_DPADDOWN_BUTTON_FILLED);
+			ImGui::SameLine();
+			ImGui::Text("Navigation");
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX()+50.0f*multiplyRes);
+			ImGui::Text(FONT_A_BUTTON_FILLED);
+			ImGui::SameLine();
+			ImGui::Text("Select");
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX()+50.0f*multiplyRes);
+			ImGui::Text(FONT_B_BUTTON_FILLED);
+			ImGui::SameLine();
+			ImGui::Text("Back");
+			if(fsbrowser->filemount){
+				ImGui::SameLine();
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX()+50.0f*multiplyRes);
+				ImGui::Text(FONT_X_BUTTON_FILLED);
+				ImGui::SameLine();
+				ImGui::Text("Close Archive/Image");
+			}
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX()+50.0f*multiplyRes);
+			ImGui::Text(FONT_Y_BUTTON_FILLED);
+			ImGui::SameLine();
+			ImGui::Text("Home");	
+			window->DrawList->AddLine(startpos,ImVec2(startpos.x+1280*multiplyRes,startpos.y) , ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,1.0f)), 1.0f);
+				
+			ImGui::EndChild();
+			
 			Windows::ExitMainWindow();
 		}
 	}

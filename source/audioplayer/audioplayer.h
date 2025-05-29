@@ -131,7 +131,7 @@ public:
 	void NextVisPreset();
 	void PrevVisPreset();
 	std::string getCurrentPlaylistItem();
-	void ToogleVis();
+	bool ToogleVis();
 	bool VisEnabled();
 	
 	

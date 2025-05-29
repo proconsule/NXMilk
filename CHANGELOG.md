@@ -1,4 +1,14 @@
 # NXMilk Changelog
+## [0.2.0]
+
+### Added
+
+- Network support (SSH/SMB/NFS)
+- CUE/BIN support (AUDIO CD Image playback) support also mixed mode image (data+audio)
+- ISO9660 support (CD/DVD image)
+- Archive support (RAR/ZIP/TAR.GZ) audio file inside an archive
+- Backlight On/Off for minimize power consumption
+
 
 ## [0.1.0]
 

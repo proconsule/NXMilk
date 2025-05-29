@@ -67,6 +67,8 @@ typedef struct {
 	Tex Mp3_Icon;
 	Tex Flac_Icon;
 	
+	Tex CDImage_Icon;
+	
 	
 		
 } nxmpicon_struct;

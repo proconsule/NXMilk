@@ -39,15 +39,15 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
+SOURCES		:=	libs/nxmp-devoptabs/ ../nxmp-devoptabs/devoptabsfs/ ../nxmp-devoptabs/devoptabsfs/iso9660fs ../nxmp-devoptabs/devoptabsfs/libarchivefs/ ../nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
 DATA		:=	data 
-INCLUDES	:=	libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
+INCLUDES	:=	libs/nxmp-devoptabs/ ../nxmp-devoptabs/devoptabsfs/ ../nxmp-devoptabs/devoptabsfs/iso9660fs ../nxmp-devoptabs/devoptabsfs/libarchivefs/ ../nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
 ROMFS	:=	romfs
 
 
 VERSION_MAJOR := 0
-VERSION_MINOR := 1
-VERSION_MICRO := 1
+VERSION_MINOR := 2
+VERSION_MICRO := 0
 
 APP_TITLE     := NXMilk
 APP_AUTHOR    := proconsule
@@ -71,7 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -DIMGUI_IMPL_OPENGL
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lprojectM-4 -lprojectM-4-playlist `aarch64-none-elf-pkg-config --libs libavformat libavcodec libavutil libavfilter libswscale libpostproc` -lGLESv2 `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lssh2 -lsmb2 -lnfs  -lmbedtls -lmbedcrypto -lmbedx509 -lexpat -llzma -lzstd -llz4 -lbz2 -lnx -lc -lz
+LIBS	:=  -lprojectM-4 -lprojectM-4-playlist `aarch64-none-elf-pkg-config --libs libiso9660` `aarch64-none-elf-pkg-config --libs libavformat libavcodec libavutil libavfilter libswscale libpostproc` -lGLESv2 `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lssh2 -lsmb2 -lnfs  -lmbedtls -lmbedcrypto -lmbedx509 -lexpat -llzma -lzstd -llz4 -lbz2 -lc -lz -lnx
 
 
 #---------------------------------------------------------------------------------

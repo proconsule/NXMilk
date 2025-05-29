@@ -82,8 +82,9 @@ void CProjectMVis::PrevVisPreset(){
 	projectm_playlist_play_previous(playlist, true);
 }
 
-void CProjectMVis::ToogleVis(){
+bool CProjectMVis::ToogleVis(){
 	vis_enabled = !vis_enabled;
+	return vis_enabled;
 }
 
 bool CProjectMVis::VisEnabled(){

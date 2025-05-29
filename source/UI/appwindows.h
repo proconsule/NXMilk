@@ -25,12 +25,13 @@ enum MENU_STATES {
     MENU_STATE_FILEBROWSER,
 	MENU_STATE_USB,
 	MENU_STATE_NETWORKSEL,
-	MENU_STATE_EXIT
-	
+	MENU_STATE_EXIT,
+	MENU_STATE_GUILESS
 };
 
 typedef struct menuitem_struct{
 	MENU_STATES state;
+	//bool filemount = false;
 	
 };
 
