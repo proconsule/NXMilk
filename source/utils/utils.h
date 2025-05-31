@@ -21,6 +21,8 @@ namespace Utility{
 	std::string trim(const std::string &s);
 	std::string removeLastSlash(const std::string &string);
 	bool isArchiveExtension(std::string path);
+	bool isAudioExtension(std::string path);
+	bool isDiscImageExtension(std::string path);
 	
 	bool BackLightOff();
 	bool BackLightOn();

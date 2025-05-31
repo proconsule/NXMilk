@@ -48,13 +48,10 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/exit.png",&icons.ExitTexture.id,&icons.ExitTexture.width,&icons.ExitTexture.height);
 	
 	TxtLoadFromFile(basepath+"/cdimage.png",&icons.CDImage_Icon.id,&icons.CDImage_Icon.width,&icons.CDImage_Icon.height);
-	TxtLoadFromFile(basepath+"/sftp.png",&icons.SFTPTexture.id,&icons.SFTPTexture.width,&icons.SFTPTexture.height);
-	TxtLoadFromFile(basepath+"/smb.png",&icons.SMBTexture.id,&icons.SMBTexture.width,&icons.SMBTexture.height);
-	TxtLoadFromFile(basepath+"/nfs.png",&icons.NFSTexture.id,&icons.NFSTexture.width,&icons.NFSTexture.height);
 	
-	Tex SFTPTexture;
-	Tex SMBTexture;
-	Tex NFSTexture;
+	TxtLoadFromFile(basepath+"/archive.png",&icons.ArchiveTexture.id,&icons.ArchiveTexture.width,&icons.ArchiveTexture.height);
+	
+	
 
 }
 

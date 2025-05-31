@@ -39,9 +39,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	libs/nxmp-devoptabs/ libs/nxmp-devoptabs/devoptabsfs/ libs/nxmp-devoptabs/devoptabsfs/iso9660fs libs/nxmp-devoptabs/devoptabsfs/libarchivefs/ libs/nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
+SOURCES		:=	../nxmp-devoptabs/ libs/nxmp-devoptabs/devoptabsfs/ libs/nxmp-devoptabs/devoptabsfs/iso9660fs libs/nxmp-devoptabs/devoptabsfs/libarchivefs/ ../nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils source source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer
 DATA		:=	data 
-INCLUDES	:=	libs/nxmp-devoptabs/ libs/nxmp-devoptabs/devoptabsfs/ libs/nxmp-devoptabs/devoptabsfs/iso9660fs libs/nxmp-devoptabs/devoptabsfs/libarchivefs/ libs/nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
+INCLUDES	:=	../nxmp-devoptabs/ libs/nxmp-devoptabs/devoptabsfs/ libs/nxmp-devoptabs/devoptabsfs/iso9660fs libs/nxmp-devoptabs/devoptabsfs/libarchivefs/ ../nxmp-devoptabs/devoptabsfs/cuebinfs/ libs/nxmp-devoptabs/devoptabsfs/nfsfs/ libs/nxmp-devoptabs/devoptabsfs/smb2fs libs/nxmp-devoptabs/devoptabsfs/sshfs source/utils include source/iniParser source/usb source/imgloader source/fsbrowser source/UI/playerOSD source/UI source/backends source/backends/glfw3-opengl3 libs/imgui source/audioplayer 
 ROMFS	:=	romfs
 
 

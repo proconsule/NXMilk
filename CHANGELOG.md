@@ -7,6 +7,7 @@
 - CUE/BIN support (AUDIO CD Image playback) support also mixed mode image (data+audio)
 - ISO9660 support (CD/DVD image)
 - Archive support (RAR/ZIP/TAR.GZ) audio file inside an archive
+- Added argv file playback for [sphaira](https://github.com/ITotalJustice/sphaira) file assocation
 - Backlight On/Off for minimize power consumption
 
 

@@ -95,6 +95,22 @@ namespace Utility{
 		return false;
 	}
 	
+	bool isDiscImageExtension(std::string path){
+		if(Utility::endsWith(path,".iso",false) || Utility::endsWith(path,".cue",false)){
+			return true;
+		}
+											
+		return false;
+	}
+	
+	bool isAudioExtension(std::string path){
+		if(Utility::endsWith(path,".wav",false) || Utility::endsWith(path,".mp3",false) || Utility::endsWith(path,".flac",false) || Utility::endsWith(path,".ogg",false)){
+			return true;
+		}
+											
+		return false;
+	}
+	
 	
 	bool BackLightOff(){
 		int rc = lblInitialize();

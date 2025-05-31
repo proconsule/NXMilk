@@ -18,7 +18,7 @@ Features
 - Wide audio file format support (See below)
 - Vis using projectM library
 - Support Japanese,Chinese,Korean Cyrilic fonts
-- Can read from SD card and from USB storage
+- Can read from SD , USB storage , Newtwork source, Image Files
 
 ### Supported Files (using ffmpeg)
 
@@ -91,6 +91,18 @@ Features
 - Nearly all the formats supported by libopenmpt
 - MIDI files (for better result you must use GUS patch file https://www.chocolate-doom.org/wiki/index.php/GUS) 
 
+### Supported Disck Images
+
+- CD-Audio (CUE/BIN)
+- ISO9660
+
+### Supported Files usign libarchive (https://github.com/libarchive/libarchive)
+
+- RAR
+- ZIP
+- TAR.GZ
+- LHA
+
 
 Button Mapping
 -----
@@ -99,10 +111,7 @@ Button Mapping
 - B Stop
 - Y Disable projectM Vis
 - Limited Touch Support
-
-USB
------
-Press Y to toogle between SD Card and USB
+- Plus Button Disable Backlight (for saving battery power)
 
 
 Installation 
@@ -110,7 +119,7 @@ Installation
 - Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
 - (OPTIONAL) Copy milk files in /switch/NXMilk/presets/milk/
 - (OPTIONAL) Copy texture files in /switch/NXMilk/presets/Textures/
-- (OPTIONAL) Copy timidity.conf and GUS patch files in /switch/NXMilk/timidity/
+- (OPTIONAL for better MIDI playback ) Copy timidity.conf and GUS patch files in /switch/NXMilk/timidity/
 
 
 Edit Config file NXMilk.ini

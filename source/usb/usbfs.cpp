@@ -37,19 +37,25 @@ int usbThread(void *arg) {
             g_usbDevices = nullptr;
         }
 		
-		g_usbDeviceCount = usbHsFsGetMountedDeviceCount();
-		g_usbDevices = (UsbHsFsDevice *) calloc(g_usbDeviceCount, sizeof(UsbHsFsDevice));
-		mymounter->mounted_devs.clear();
 		
 		if (idx == 1)
         {
             break;
         }
 
+
+		g_usbDeviceCount = usbHsFsGetMountedDeviceCount();
+		
+		 if (!g_usbDeviceCount) continue;
+		
+		g_usbDevices = (UsbHsFsDevice *) calloc(g_usbDeviceCount, sizeof(UsbHsFsDevice));
+		mymounter->mounted_devs.clear();
+		
 		if (!g_usbDevices)
         {
             continue;
         }
+		
 
 		if (!(listed_device_count = usbHsFsListMountedDevices(g_usbDevices, g_usbDeviceCount)))
         {
@@ -229,7 +235,6 @@ USBMounter::~USBMounter(){
 #endif
 
 	usbHsFsExit();
-	if (g_usbDevices) free(g_usbDevices);
 }
 
 USBMounter::USBMounter(){

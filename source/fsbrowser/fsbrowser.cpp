@@ -134,7 +134,9 @@ void CFSBrowser::DirList(std::string path,bool showHidden,const std::vector<std:
 							
 							filelist.push_back(fsentry);
 							if(!S_ISDIR(fsentry.st.st_mode)){
-								audiofilelist.push_back(fsentry);
+								if(Utility::isAudioExtension(fsentry.filename)){
+									audiofilelist.push_back(fsentry);
+								}
 							}
 							
 						}
@@ -236,7 +238,7 @@ CFSBrowser::~CFSBrowser(){
 	if(SMB2FS != nullptr)delete SMB2FS;
 	if(NFSFS != nullptr)delete NFSFS;
 	if(CUEBINFS != nullptr)delete CUEBINFS;
-	
+	if(ISO9660FS!= nullptr)delete ISO9660FS;
 }
 
 void CFSBrowser::OpenArchive(std::string _path){
@@ -255,8 +257,15 @@ void CFSBrowser::OpeCueFile(std::string _path){
 	
 	oldtitle = title;
 	oldmount = currentpath;
-	title = "Disc Image - " + _path.substr(_path.find_last_of("/") + 1);
 	CUEBINFS = new CCUEBINFS(_path,"ncd0","ncd0:");
+	if(CUEBINFS->getMediumType() == CUEBIN_MEDIA_CDAUDIO){
+		title = "CD-Audio Image - " + _path.substr(_path.find_last_of("/") + 1);
+	}else if (CUEBINFS->getMediumType() == CUEBIN_MEDIA_MIXED){
+		title = "Mixed Mode Image - " + _path.substr(_path.find_last_of("/") + 1);
+	}else if (CUEBINFS->getMediumType() == CUEBIN_MEDIA_MIXED){
+		title = "Data Image - " + _path.substr(_path.find_last_of("/") + 1);
+	}
+	
 	connected = true;
 	basepath = CUEBINFS->mount_name + "/";
 	currentpath = CUEBINFS->mount_name + "/";

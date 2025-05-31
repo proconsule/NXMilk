@@ -57,7 +57,9 @@ namespace Windows {
 
 	void USBWindow() {
 		Windows::SetupMainWindow();
+#ifdef USB_USE_CALLBACK_SYSTEM
 		if(MyUSBMount != nullptr)MyUSBMount->usbMscTestDevices();
+#endif
 		if (ImGui::Begin("USB Devices", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 			
 			
@@ -146,6 +148,7 @@ namespace Windows {
 					if (ImGui::Selectable(itemid.c_str(), selected == n,selectable_flags,ImVec2(1280*multiplyRes,50*multiplyRes))){
 						if(n == 0){
 							menuitem.state = MENU_STATE_FILEBROWSER;
+							if(fsbrowser != nullptr)delete fsbrowser;
 							fsbrowser = new CFSBrowser(configini->getStartPath(),"Local Browser");
 							fsbrowser->DirList(configini->getStartPath(),true,audioextensions);
 							
@@ -267,16 +270,17 @@ namespace Windows {
 							}else if(Utility::endsWith(thislist[n].filename.c_str(),".flac",false)){
 								ImGui::Image((void*)(intptr_t)imgloader->icons.Flac_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							
-							}else if(Utility::endsWith(thislist[n].filename.c_str(),".cue",false)){
+							}else if(Utility::isDiscImageExtension(thislist[n].filename.c_str())){
 								ImGui::Image((void*)(intptr_t)imgloader->icons.CDImage_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							
-							}else if(Utility::endsWith(thislist[n].filename.c_str(),".iso",false)){
-								ImGui::Image((void*)(intptr_t)imgloader->icons.CDImage_Icon.id, ImVec2(30*multiplyRes,30*multiplyRes));
+							}else if(Utility::isArchiveExtension(thislist[n].filename.c_str())){
+								ImGui::Image((void*)(intptr_t)imgloader->icons.ArchiveTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							
 							}else{
 								ImGui::Image((void*)(intptr_t)imgloader->icons.FileTexture.id, ImVec2(30*multiplyRes,30*multiplyRes));
 							}
 						}
+						
 						ImGui::SameLine();
 						float curx = ImGui::GetCursorPosX();
 						float cury = ImGui::GetCursorPosY();

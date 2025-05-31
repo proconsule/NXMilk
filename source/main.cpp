@@ -244,45 +244,66 @@ main(int argc, const char* const* argv) {
 				bool retvis = audioplayer->ToogleVis();
 				
 			}else{
-				if(fsbrowser != nullptr){
-					delete fsbrowser;
-					fsbrowser = nullptr;
+				if(menuitem.state == MENU_STATE_FILEBROWSER){
+					if(fsbrowser != nullptr){
+						delete fsbrowser;
+						fsbrowser = nullptr;
+					}
+					menuitem.state = MENU_STATE_HOME;
 				}
-				menuitem.state = MENU_STATE_HOME;
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_B)){
 			if(audioplayer->Running()){
 				audioplayer->Stop();
 			}else{
-				std::string newpath = fsbrowser->backDir();
-				fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+				if(menuitem.state == MENU_STATE_FILEBROWSER){
+					if(fsbrowser != nullptr){
+						std::string newpath = fsbrowser->backDir();
+						fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
+					}
+				}
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_PLUS)){
-			if(BackLightToggle){
+			if(audioplayer->Running()){
+				if(BackLightToggle){
 					Utility::BackLightOff();
 					BackLightToggle = false;
 				}else{
 					Utility::BackLightOn();
 					BackLightToggle = true;
 				}
+			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_R)){
-			audioplayer->Seek(5);
-			Windows::UserActivity();
+			if(audioplayer->Running()){
+				audioplayer->Seek(5);
+				Windows::UserActivity();
+			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_L)){
-			audioplayer->Seek(-5);
-			Windows::UserActivity();
+			if(audioplayer->Running()){
+				audioplayer->Seek(-5);
+				Windows::UserActivity();
+			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_ZL)){
-			audioplayer->PrevVisPreset();
-			Windows::VisPlaylistActivity();
+			if(audioplayer->Running()){
+				audioplayer->PrevVisPreset();
+				Windows::VisPlaylistActivity();
+			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_ZR)){
-			audioplayer->NextVisPreset();
-			Windows::VisPlaylistActivity();
+			if(audioplayer->Running()){
+				audioplayer->NextVisPreset();
+				Windows::VisPlaylistActivity();
+			}
+		}
+		
+		if(!audioplayer->Running() && !BackLightToggle){
+			Utility::BackLightOn();
+			BackLightToggle = true;
 		}
 		
 		
