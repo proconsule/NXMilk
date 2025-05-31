@@ -10,6 +10,9 @@
 - Added argv file playback for [sphaira](https://github.com/ITotalJustice/sphaira) file assocation
 - Backlight On/Off for minimize power consumption
 
+### Changes
+
+- Changed milk builtin presets
 
 ## [0.1.0]
 
