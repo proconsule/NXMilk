@@ -7,6 +7,7 @@
 #include <threads.h>
 #include <usbhsfs.h>
 
+#include <usbdvd.h>
 
 
 #define USB_USE_EVENT_SYSTEM
@@ -36,6 +37,8 @@ public:
 	std::string getBasePath();
 	//UsbHsFsDevice *g_usbDevices;
 	//u32 g_usbDeviceCount;
+	
+	CUSBDVD *testusbdvd = nullptr;
 
 #ifdef USB_USE_CALLBACK_SYSTEM	
 	

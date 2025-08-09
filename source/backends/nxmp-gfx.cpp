@@ -1340,7 +1340,7 @@ namespace nxmpgfx{
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		
-		window = glfwCreateWindow(WIDTH, HEIGHT, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+		window = glfwCreateWindow(WIDTH, HEIGHT, "NXMilk Window", nullptr, nullptr);
 		if (window == nullptr)
 			return;
 		glfwMakeContextCurrent(window);

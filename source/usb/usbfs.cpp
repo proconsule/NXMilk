@@ -234,12 +234,17 @@ USBMounter::~USBMounter(){
     }
 #endif
 
+	if(testusbdvd != nullptr)delete testusbdvd;
+
 	usbHsFsExit();
 }
 
 USBMounter::USBMounter(){
 	Result rc;
     
+	
+	testusbdvd = new CUSBDVD();
+
 	
 	rc = usbHsFsInitialize(0);
 	if (R_FAILED(rc))

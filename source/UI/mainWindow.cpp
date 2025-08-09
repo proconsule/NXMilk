@@ -66,6 +66,37 @@ namespace Windows {
 			static int selected = -1;
 			if(MyUSBMount != nullptr){	
 				std::vector<usb_devices> thislist = MyUSBMount->mounted_devs;
+				
+				if(MyUSBMount->testusbdvd->usbdvd_drive_ctx.drive_found){
+					
+					unsigned int n = 0;
+					if (ImGui::Selectable("##DVDITEM", selected == n,0, ImVec2(0, 60))){
+						//std::string mountpath = "acd0:/";
+						//if(MyUSBMount->testusbdvd != nullptr){
+							if(MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mounted){
+							std::string mountpath = MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mountpoint + std::string("/");
+							MyUSBMount->setBasePath(mountpath);
+							menuitem.state = MENU_STATE_FILEBROWSER;
+							fsbrowser = new CFSBrowser(mountpath,"USB Browser " + mountpath);
+							fsbrowser->DirList(mountpath,false,audioextensions);
+						}
+						//}
+					}
+					float currstartYpos = ImGui::GetCursorPosY();
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
+						ImGui::Image((void*)(intptr_t)imgloader->icons.DVDDrive_Icon.id, ImVec2(40,40));
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(currstartYpos);
+						float currstartXpos = ImGui::GetCursorPosX();
+						std::string devname = Utility::trim(MyUSBMount->testusbdvd->usbdvd_drive_ctx.product_id)  + std::string(" -> ") + MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mountpoint;
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
+						ImGui::Text("%s",devname.c_str());
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
+						ImGui::SetCursorPosX(currstartXpos);
+						ImGui::Text("%s %s",MyUSBMount->testusbdvd->usbdvd_drive_ctx.disc_type,MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.disc_fstype);
+						ImGui::SetCursorPosY(currstartYpos);
+				}
 				for (unsigned int n = 0; n < thislist.size(); n++){
 					std::string itemid = "##" + std::to_string(n);
 					if (ImGui::Selectable(itemid.c_str(), selected == n,0, ImVec2(0, 60))){
@@ -93,6 +124,33 @@ namespace Windows {
 					
 					//ImGui::Text("%s %s",MyUSBMount->mounted_devs[n].fstype.c_str(),humanSize(MyUSBMount->mounted_devs[n].capacity).c_str());
 				}
+				
+				/*
+				if(MyUSBMount->testusbdvd){
+					unsigned int n = 0;
+					if (ImGui::Selectable("##DVDITEM", selected == n,0, ImVec2(0, 60))){
+						std::string mountpath = "acd0/";
+						MyUSBMount->setBasePath(mountpath);
+						menuitem.state = MENU_STATE_FILEBROWSER;
+						fsbrowser = new CFSBrowser(mountpath,"USB Browser " + mountpath);
+						fsbrowser->DirList(mountpath,false,audioextensions);
+					}
+					float currstartYpos = ImGui::GetCursorPosY();
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
+						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(40,40));
+						ImGui::SameLine();
+						ImGui::SetCursorPosY(currstartYpos);
+						float currstartXpos = ImGui::GetCursorPosX();
+						std::string devname = Utility::trim(MyUSBMount->testusbdvd->product_id)  + std::string(" -> ") + "acd0:";
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
+						ImGui::Text("%s",devname.c_str());
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
+						ImGui::SetCursorPosX(currstartXpos);
+						ImGui::Text("%s %s",thislist[n].fstype.c_str(),Utility::humanSize(thislist[n].capacity).c_str());
+						ImGui::SetCursorPosY(currstartYpos);
+				}
+				*/
 			}
 		
 		
@@ -302,10 +360,18 @@ namespace Windows {
 									fsbrowser->DirList(fsbrowser->getCurrentPath(),false,audioextensions);
 									
 								} else {
-									bool loaded = audioplayer->LoadFile(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
-									if(loaded){
-										audioplayer->Play();
+									if(Utility::endsWith(fsbrowser->getCurrentPath(),"/",false)){
+										bool loaded = audioplayer->LoadFile(fsbrowser->getCurrentPath()+thislist[n].filename);
+										if(loaded){
+											audioplayer->Play();
+										}
+									}else{
+										bool loaded = audioplayer->LoadFile(fsbrowser->getCurrentPath()+"/"+thislist[n].filename);
+										if(loaded){
+											audioplayer->Play();
+										}
 									}
+									
 								}
 								
 							}else{

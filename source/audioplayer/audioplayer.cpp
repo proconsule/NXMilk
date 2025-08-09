@@ -72,11 +72,27 @@ CAudioPlayer::~CAudioPlayer(){
 		}
     
 	if(fileloaded){
-		avcodec_free_context(&nxmpaudioctx.audCtx);
-		avformat_close_input(&nxmpaudioctx.pFormatCtx);
-		avformat_free_context(nxmpaudioctx.pFormatCtx);
+		
+		if(nxmpaudioctx.graph) {
+            avfilter_graph_free(&nxmpaudioctx.graph);
+            nxmpaudioctx.graph = nullptr;
+        }
+		
+		
+		if(nxmpaudioctx.audCtx) {
+            avcodec_free_context(&nxmpaudioctx.audCtx);
+            nxmpaudioctx.audCtx = nullptr;
+        }
+        
+        if(nxmpaudioctx.pFormatCtx) {
+            avformat_close_input(&nxmpaudioctx.pFormatCtx);
+            nxmpaudioctx.pFormatCtx = nullptr;
+        }
 	}
-	delete nxmpaudioctx.pmvis;
+	if(nxmpaudioctx.pmvis) {
+        delete nxmpaudioctx.pmvis;
+        nxmpaudioctx.pmvis = nullptr;
+    }
 	
 }
 

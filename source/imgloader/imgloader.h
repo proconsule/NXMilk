@@ -68,6 +68,7 @@ typedef struct {
 	Tex Flac_Icon;
 	
 	Tex CDImage_Icon;
+	Tex DVDDrive_Icon;
 	
 	
 		

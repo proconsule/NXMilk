@@ -175,11 +175,6 @@ main(int argc, const char* const* argv) {
 	nxmpgfx::Init_Backend_Splash(false);
 	nxmpgfx::updateSplash(50);
 	
-	
-	
-	
-	
-	
 	nxmpgfx::Init_ImGui(false);
 	nxmpgfx::SetColorTheme(0);
 	nxmpgfx::setEnableTouch(true);
@@ -345,10 +340,17 @@ main(int argc, const char* const* argv) {
 
     
 #endif
+	printf("Delete AudioPlayer\r\n");
+	fflush(stdout);
 	delete audioplayer;
+	printf("Delete USB\r\n");
+	fflush(stdout);
+	if(MyUSBMount!=nullptr)delete MyUSBMount;
+	printf("Delete IMGLOADER\r\n");
+	fflush(stdout);
 	delete imgloader;
 	
-	if(MyUSBMount!=nullptr)delete MyUSBMount;
+	
 	
 	glfwDestroyWindow(window);
 	glfwTerminate();
