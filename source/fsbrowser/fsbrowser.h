@@ -19,8 +19,10 @@
 #include "smb2fs.h"
 #include "nfsfs.h"
 #include "libarchivefs.h"
-#include "cuebinfs.h"
-#include "iso9660fs.h"
+//#include "cuebinfs.h"
+//#include "iso9660fs.h"
+#include "usbdvd.h"
+
 
 typedef struct{
 	std::string filename;
@@ -59,10 +61,10 @@ private:
 	CSSHFS *SSHFS = nullptr;
 	CSMB2FS *SMB2FS = nullptr;
 	CNFSFS *NFSFS = nullptr;
-	CCUEBINFS *CUEBINFS = nullptr;
+	//CCUEBINFS *CUEBINFS = nullptr;
 	CARCHFS *ARCHFS = nullptr;
-	CISO9660FS *ISO9660FS = nullptr;
-	
+	//CISO9660FS *ISO9660FS = nullptr;
+	CUSBDVD * USBDVD_ISO = nullptr;
 	
 	
 	

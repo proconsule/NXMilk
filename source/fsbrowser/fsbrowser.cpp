@@ -1,5 +1,6 @@
 #include "fsbrowser.h"
 #include "utils.h"
+#include <filesystem>
 
 CFSBrowser::CFSBrowser(networkstruct_v2 netconfdata){
 	
@@ -237,8 +238,7 @@ CFSBrowser::~CFSBrowser(){
 	if(SSHFS != nullptr)delete SSHFS;
 	if(SMB2FS != nullptr)delete SMB2FS;
 	if(NFSFS != nullptr)delete NFSFS;
-	if(CUEBINFS != nullptr)delete CUEBINFS;
-	if(ISO9660FS!= nullptr)delete ISO9660FS;
+	if(USBDVD_ISO!= nullptr)delete USBDVD_ISO;
 }
 
 void CFSBrowser::OpenArchive(std::string _path){
@@ -257,6 +257,30 @@ void CFSBrowser::OpeCueFile(std::string _path){
 	
 	oldtitle = title;
 	oldmount = currentpath;
+	std::filesystem::path p = _path;
+	
+	
+	std::string _binpath = p.replace_extension(".bin");
+	title = _binpath;
+	if(USBDVD_ISO != nullptr){
+		delete USBDVD_ISO;
+		USBDVD_ISO = nullptr;
+	}
+	USBDVD_ISO = new CUSBDVD(_path,_binpath);
+	usbdvd_drive_struct *drivectx = &USBDVD_ISO->usbdvd_drive_ctx;
+	connected = true;
+	basepath = drivectx->fs.mountpoint + std::string("/");
+	currentpath =  drivectx->fs.mountpoint + std::string("/");
+	filemount = true;
+	
+	/*
+	
+	oldtitle = title;
+	oldmount = currentpath;
+	std::filesystem::path p = _path;
+	std::string _binpath = p.replace_extension(".bin");
+	
+	
 	CUEBINFS = new CCUEBINFS(_path,"ncd0","ncd0:");
 	if(CUEBINFS->getMediumType() == CUEBIN_MEDIA_CDAUDIO){
 		title = "CD-Audio Image - " + _path.substr(_path.find_last_of("/") + 1);
@@ -270,10 +294,27 @@ void CFSBrowser::OpeCueFile(std::string _path){
 	basepath = CUEBINFS->mount_name + "/";
 	currentpath = CUEBINFS->mount_name + "/";
 	filemount = true;
+	*/
 }
 
 void CFSBrowser::OpeISO9660File(std::string _path){
+
+
+	oldtitle = title;
+	oldmount = currentpath;
+	if(USBDVD_ISO != nullptr){
+		delete USBDVD_ISO;
+		USBDVD_ISO = nullptr;
+	}
+	USBDVD_ISO = new CUSBDVD(_path);
+	title = "ISO9660 Disck Image - " + _path.substr(_path.find_last_of("/") + 1);
+	usbdvd_drive_struct *drivectx = &USBDVD_ISO->usbdvd_drive_ctx;
+	connected = true;
 	
+	basepath = drivectx->fs.mountpoint + std::string("/");
+	currentpath =  drivectx->fs.mountpoint + std::string("/");
+	filemount = true;
+/*	
 	oldtitle = title;
 	oldmount = currentpath;
 	title = "ISO9660 Disck Image - " + _path.substr(_path.find_last_of("/") + 1);
@@ -282,7 +323,7 @@ void CFSBrowser::OpeISO9660File(std::string _path){
 	basepath = ISO9660FS->mount_name + "/";
 	currentpath = ISO9660FS->mount_name + "/";
 	filemount = true;
-	
+*/	
 }
 
 void CFSBrowser::CloseFilesMount(){
@@ -290,17 +331,13 @@ void CFSBrowser::CloseFilesMount(){
 	currentpath = oldmount;
 	basepath = currentpath;
 	
-	if(CUEBINFS != nullptr){
-		delete CUEBINFS;
-		CUEBINFS = nullptr;
-	}
 	if(ARCHFS != nullptr){
 		delete ARCHFS;
 		ARCHFS = nullptr;
 	}
-	if(ISO9660FS != nullptr){
-		delete ISO9660FS;
-		ISO9660FS = nullptr;
+	if(USBDVD_ISO != nullptr){
+		delete USBDVD_ISO;
+		USBDVD_ISO = nullptr;
 	}
 	filemount = false;
 }

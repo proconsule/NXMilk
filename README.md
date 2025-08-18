@@ -19,6 +19,7 @@ Features
 - Vis using projectM library
 - Support Japanese,Chinese,Korean Cyrilic fonts
 - Can read from SD , USB storage , Newtwork source, Image Files
+- USB-DVD USB-BD Drive support using https://github.com/proconsule/libusbdvd , can read CD DVD BD  
 
 ### Supported Files (using ffmpeg)
 
