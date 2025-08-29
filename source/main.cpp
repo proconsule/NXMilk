@@ -48,7 +48,7 @@ CIniParser* configini;
 float multiplyRes = 1.0f;
 bool isHandheld = true;
 
-std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".wav",".m4a",".cue",".rar",".zip",".tar.gz",".iso"};
+std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".wav",".m4a",".cue",".rar",".zip",".tar.gz",".iso",".m2ts"};
 
 
 std::vector<std::string> libopenmptext = {"669",".amf",".ams",".dbm",".digi",".dmf",".dsm",".far",".gdm",".ice",".imf",".it",".j2b",".m15",".mdl",".med",".mmcmp",".mms",".mo3",".mod",".mptm",".mt2",".mtm",".nst",".okt",".plm",".ppm",".psm",".pt36",".ptm",".s3m",".sfx",".sfx2",".st26",".stk",".stm",".ult",".umx",".wow",".xm",".xpk"};

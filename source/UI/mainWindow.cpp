@@ -67,14 +67,14 @@ namespace Windows {
 			if(MyUSBMount != nullptr){	
 				std::vector<usb_devices> thislist = MyUSBMount->mounted_devs;
 				
-				if(MyUSBMount->testusbdvd->usbdvd_drive_ctx.drive_found){
+				if(MyUSBMount->testusbdvd->usbdvd_ctx.drive.drive_found){
 					
 					unsigned int n = 0;
-					if (ImGui::Selectable("##DVDITEM", selected == n,0, ImVec2(0, 60))){
+					if (ImGui::Selectable("##DVDITEM", selected == n,0, ImVec2(1000, 60))){
 						//std::string mountpath = "acd0:/";
 						//if(MyUSBMount->testusbdvd != nullptr){
-							if(MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mounted){
-							std::string mountpath = MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mountpoint + std::string("/");
+							if(MyUSBMount->testusbdvd->usbdvd_ctx.fs.mounted){
+							std::string mountpath = MyUSBMount->testusbdvd->usbdvd_ctx.fs.mountpoint + std::string("/");
 							MyUSBMount->setBasePath(mountpath);
 							menuitem.state = MENU_STATE_FILEBROWSER;
 							fsbrowser = new CFSBrowser(mountpath,"USB Browser " + mountpath);
@@ -82,20 +82,64 @@ namespace Windows {
 						}
 						//}
 					}
+					
+					
 					float currstartYpos = ImGui::GetCursorPosY();
+					ImGui::SameLine();
+					float myoptsbtX = ImGui::GetCursorPosX();
+					float myoptsbtY = ImGui::GetCursorPosY();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()-1000.f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
+					ImGui::Image((void*)(intptr_t)imgloader->icons.DVDDrive_Icon.id, ImVec2(40,40));
+					ImGui::SameLine();
+					ImGui::SetCursorPosY(currstartYpos);
+					float currstartXpos = ImGui::GetCursorPosX();
+					std::string devname = Utility::trim(MyUSBMount->testusbdvd->usbdvd_ctx.drive.product_id)  + std::string(" -> ") + MyUSBMount->testusbdvd->usbdvd_ctx.fs.mountpoint;
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
+					ImGui::Text("%s",devname.c_str());
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
+					ImGui::SetCursorPosX(currstartXpos);
+					ImGui::Text("%s %s",MyUSBMount->testusbdvd->usbdvd_ctx.drive.disc_type,MyUSBMount->testusbdvd->usbdvd_ctx.fs.disc_fstype);
+					ImGui::SetCursorPosY(currstartYpos);
+					ImGui::SameLine();
+					
+					ImGui::SetCursorPosX(myoptsbtX);
+					ImGui::SetCursorPosY(myoptsbtY);
+					if(!MyUSBMount->testusbdvd->usbdvd_ctx.fs.mounted){
+						
+						if (ImGui::Selectable("##DVDMOUNT", selected == n,0, ImVec2(100, 60))){
+							MyUSBMount->testusbdvd->MountDisc();
+						}
 						ImGui::SameLine();
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
-						ImGui::Image((void*)(intptr_t)imgloader->icons.DVDDrive_Icon.id, ImVec2(40,40));
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX()-90.f);
+						double imgstartpos = ImGui::GetCursorPosX();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-35.f);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX()+5.0);
+						ImGui::Image((void*)(intptr_t)imgloader->icons.DVDMount_Icon.id, ImVec2(40,40));
 						ImGui::SameLine();
-						ImGui::SetCursorPosY(currstartYpos);
-						float currstartXpos = ImGui::GetCursorPosX();
-						std::string devname = Utility::trim(MyUSBMount->testusbdvd->usbdvd_drive_ctx.product_id)  + std::string(" -> ") + MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.mountpoint;
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
-						ImGui::Text("%s",devname.c_str());
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
-						ImGui::SetCursorPosX(currstartXpos);
-						ImGui::Text("%s %s",MyUSBMount->testusbdvd->usbdvd_drive_ctx.disc_type,MyUSBMount->testusbdvd->usbdvd_drive_ctx.fs.disc_fstype);
-						ImGui::SetCursorPosY(currstartYpos);
+						ImGui::SetCursorPosX(imgstartpos);
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0);
+						ImGui::Text("Mount");
+						ImGui::SameLine();
+					}
+					ImGui::SetCursorPosX(myoptsbtX+100);
+					ImGui::SetCursorPosY(myoptsbtY);
+					if (ImGui::Selectable("##DVDEJECT", selected == n,0, ImVec2(100, 60))){
+						MyUSBMount->testusbdvd->Eject();
+					}
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()-90.f);
+					double imgstartpos = ImGui::GetCursorPosX();
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-35.f);
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()+5.0);
+					ImGui::Image((void*)(intptr_t)imgloader->icons.DVDEject_Icon.id, ImVec2(40,40));
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(imgstartpos);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0);
+					ImGui::Text("Eject");
+					
+					
+					
 				}
 				for (unsigned int n = 0; n < thislist.size(); n++){
 					std::string itemid = "##" + std::to_string(n);

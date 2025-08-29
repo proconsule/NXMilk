@@ -267,10 +267,10 @@ void CFSBrowser::OpeCueFile(std::string _path){
 		USBDVD_ISO = nullptr;
 	}
 	USBDVD_ISO = new CUSBDVD(_path,_binpath);
-	usbdvd_drive_struct *drivectx = &USBDVD_ISO->usbdvd_drive_ctx;
+	usbdvd_struct *usbdvdctx = &USBDVD_ISO->usbdvd_ctx;
 	connected = true;
-	basepath = drivectx->fs.mountpoint + std::string("/");
-	currentpath =  drivectx->fs.mountpoint + std::string("/");
+	basepath = usbdvdctx->fs.mountpoint + std::string("/");
+	currentpath =  usbdvdctx->fs.mountpoint + std::string("/");
 	filemount = true;
 	
 	/*
@@ -308,11 +308,11 @@ void CFSBrowser::OpeISO9660File(std::string _path){
 	}
 	USBDVD_ISO = new CUSBDVD(_path);
 	title = "ISO9660 Disck Image - " + _path.substr(_path.find_last_of("/") + 1);
-	usbdvd_drive_struct *drivectx = &USBDVD_ISO->usbdvd_drive_ctx;
+	usbdvd_struct *usbdvdctx = &USBDVD_ISO->usbdvd_ctx;
 	connected = true;
 	
-	basepath = drivectx->fs.mountpoint + std::string("/");
-	currentpath =  drivectx->fs.mountpoint + std::string("/");
+	basepath = usbdvdctx->fs.mountpoint + std::string("/");
+	currentpath =  usbdvdctx->fs.mountpoint + std::string("/");
 	filemount = true;
 /*	
 	oldtitle = title;

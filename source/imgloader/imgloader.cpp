@@ -40,6 +40,8 @@ CImgLoader::CImgLoader(std::string basepath){
 	TxtLoadFromFile(basepath+"/archive.png",&icons.ArchiveTexture.id,&icons.ArchiveTexture.width,&icons.ArchiveTexture.height);
 	TxtLoadFromFile(basepath+"/dvddrive.png",&icons.DVDDrive_Icon.id,&icons.DVDDrive_Icon.width,&icons.DVDDrive_Icon.height);
 	
+	TxtLoadFromFile(basepath+"/dvdeject.png",&icons.DVDEject_Icon.id,&icons.DVDEject_Icon.width,&icons.DVDEject_Icon.height);
+	TxtLoadFromFile(basepath+"/dvdmount.png",&icons.DVDMount_Icon.id,&icons.DVDMount_Icon.width,&icons.DVDMount_Icon.height);
 	
 
 }
@@ -73,7 +75,9 @@ CImgLoader::~CImgLoader(){
 	glDeleteTextures(1, &icons.ArchiveTexture.id);
 	glDeleteTextures(1, &icons.DVDDrive_Icon.id);
 	
-
+	glDeleteTextures(1, &icons.DVDEject_Icon.id);
+	glDeleteTextures(1, &icons.DVDMount_Icon.id);
+	
 	
 }
 

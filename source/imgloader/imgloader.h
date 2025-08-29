@@ -70,6 +70,10 @@ typedef struct {
 	Tex CDImage_Icon;
 	Tex DVDDrive_Icon;
 	
+	Tex DVDEject_Icon;
+	Tex DVDMount_Icon;
+	
+	
 	
 		
 } nxmpicon_struct;
