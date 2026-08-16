@@ -42,6 +42,8 @@ extern "C" {
 #include "libavutil/time.h"
 #include "libavutil/bprint.h"
 
+#include <fluidsynth.h>
+
 #ifdef __cplusplus
 }
 #endif
@@ -70,6 +72,13 @@ typedef struct {
 	
 	AVFilterGraph *graph;
     AVFilterContext *src, *sink;
+	
+	bool isMidi = false;
+	fluid_settings_t *fsettings = nullptr;
+	fluid_synth_t *fsynth = nullptr;
+	fluid_player_t *fplayer = nullptr;
+	int fsfontId = -1;
+	long midiSamplesWritten = 0; 
 	
 	size_t mempool_size;
 	void* mempool_ptr;

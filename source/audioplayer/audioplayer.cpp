@@ -1,10 +1,22 @@
 #include "audioplayer.h"
 
 #include <malloc.h>
-
+#include <algorithm>
+#include <cctype>
 
 #define BUFFER_COUNT 5
 
+// Returns true if filename has a .mid / .midi extension (case insensitive)
+static bool IsMidiFile(const std::string &filename){
+	std::string ext;
+	size_t pos = filename.find_last_of('.');
+	if(pos == std::string::npos) return false;
+	ext = filename.substr(pos);
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+	return ext == ".mid" || ext == ".midi" || ext == ".rmi" || ext == ".kar";
+}
+
+void MidiAudioThread(void *arg);
 
 void AudrenAudioThread(void *arg);
 size_t append_audio(const void *buf, size_t size);
@@ -71,24 +83,35 @@ CAudioPlayer::~CAudioPlayer(){
 			audrenExit();
 		}
     
-	if(fileloaded){
-		
-		if(nxmpaudioctx.graph) {
-            avfilter_graph_free(&nxmpaudioctx.graph);
-            nxmpaudioctx.graph = nullptr;
-        }
-		
-		
-		if(nxmpaudioctx.audCtx) {
-            avcodec_free_context(&nxmpaudioctx.audCtx);
-            nxmpaudioctx.audCtx = nullptr;
-        }
-        
-        if(nxmpaudioctx.pFormatCtx) {
-            avformat_close_input(&nxmpaudioctx.pFormatCtx);
-            nxmpaudioctx.pFormatCtx = nullptr;
-        }
-	}
+		if(nxmpaudioctx.isMidi){
+			if(nxmpaudioctx.fplayer){
+				delete_fluid_player(nxmpaudioctx.fplayer);
+				nxmpaudioctx.fplayer = nullptr;
+			}
+			if(nxmpaudioctx.fsynth){
+				delete_fluid_synth(nxmpaudioctx.fsynth);
+				nxmpaudioctx.fsynth = nullptr;
+			}
+			if(nxmpaudioctx.fsettings){
+				delete_fluid_settings(nxmpaudioctx.fsettings);
+				nxmpaudioctx.fsettings = nullptr;
+			}
+		} else {
+			if(nxmpaudioctx.graph) {
+				avfilter_graph_free(&nxmpaudioctx.graph);
+				nxmpaudioctx.graph = nullptr;
+			}
+
+			if(nxmpaudioctx.audCtx) {
+				avcodec_free_context(&nxmpaudioctx.audCtx);
+				nxmpaudioctx.audCtx = nullptr;
+			}
+			
+			if(nxmpaudioctx.pFormatCtx) {
+				avformat_close_input(&nxmpaudioctx.pFormatCtx);
+				nxmpaudioctx.pFormatCtx = nullptr;
+			}
+		}
 	if(nxmpaudioctx.pmvis) {
         delete nxmpaudioctx.pmvis;
         nxmpaudioctx.pmvis = nullptr;
@@ -182,20 +205,74 @@ void CAudioPlayer::ClearID3(){
 bool CAudioPlayer::LoadFile(std::string filename){
 	if(fileloaded){
 		Stop();
-		
-		
-		
-		
-		avfilter_graph_free(&nxmpaudioctx.graph);
-		
-		avcodec_free_context(&nxmpaudioctx.audCtx);
-		avformat_close_input(&nxmpaudioctx.pFormatCtx);
-		avformat_free_context(nxmpaudioctx.pFormatCtx);
-		avcodec_free_context(&nxmpaudioctx.audCtx);
+
+		if(nxmpaudioctx.isMidi){
+			if(nxmpaudioctx.fplayer){ delete_fluid_player(nxmpaudioctx.fplayer); nxmpaudioctx.fplayer = nullptr; }
+			if(nxmpaudioctx.fsynth){ delete_fluid_synth(nxmpaudioctx.fsynth); nxmpaudioctx.fsynth = nullptr; }
+			if(nxmpaudioctx.fsettings){ delete_fluid_settings(nxmpaudioctx.fsettings); nxmpaudioctx.fsettings = nullptr; }
+		} else {
+			avfilter_graph_free(&nxmpaudioctx.graph);
+			avcodec_free_context(&nxmpaudioctx.audCtx);
+			avformat_close_input(&nxmpaudioctx.pFormatCtx);
+			avformat_free_context(nxmpaudioctx.pFormatCtx);
+			avcodec_free_context(&nxmpaudioctx.audCtx);
+		}
+
 		fileloaded=false;
 		ClearID3();
 		
 		
+	}
+	
+	nxmpaudioctx.isMidi = IsMidiFile(filename);
+
+	if(nxmpaudioctx.isMidi){
+
+		nxmpaudioctx.fsettings = new_fluid_settings();
+		fluid_settings_setnum(nxmpaudioctx.fsettings, "synth.sample-rate", 48000.0);
+		fluid_settings_setint(nxmpaudioctx.fsettings, "synth.audio-channels", 1);
+		fluid_settings_setint(nxmpaudioctx.fsettings, "synth.audio-groups", 1);
+		fluid_settings_setint(nxmpaudioctx.fsettings, "player.reset-synth", 0);
+
+		nxmpaudioctx.fsynth = new_fluid_synth(nxmpaudioctx.fsettings);
+		if(!nxmpaudioctx.fsynth){
+			printf("fluidsynth: cannot create synth\n");
+			delete_fluid_settings(nxmpaudioctx.fsettings);
+			nxmpaudioctx.fsettings = nullptr;
+			return false;
+		}
+
+		nxmpaudioctx.fsfontId = fluid_synth_sfload(nxmpaudioctx.fsynth, audioconfig.soundfontpath.c_str(), 1);
+		if(nxmpaudioctx.fsfontId == FLUID_FAILED){
+			printf("fluidsynth: cannot load soundfont %s\n", audioconfig.soundfontpath.c_str());
+			delete_fluid_synth(nxmpaudioctx.fsynth);
+			nxmpaudioctx.fsynth = nullptr;
+			delete_fluid_settings(nxmpaudioctx.fsettings);
+			nxmpaudioctx.fsettings = nullptr;
+			return false;
+		}
+
+		nxmpaudioctx.fplayer = new_fluid_player(nxmpaudioctx.fsynth);
+		if(!nxmpaudioctx.fplayer || fluid_player_add(nxmpaudioctx.fplayer, filename.c_str()) != FLUID_OK){
+			printf("fluidsynth: cannot open midi file %s\n", filename.c_str());
+			if(nxmpaudioctx.fplayer){ delete_fluid_player(nxmpaudioctx.fplayer); nxmpaudioctx.fplayer = nullptr; }
+			delete_fluid_synth(nxmpaudioctx.fsynth);
+			nxmpaudioctx.fsynth = nullptr;
+			delete_fluid_settings(nxmpaudioctx.fsettings);
+			nxmpaudioctx.fsettings = nullptr;
+			return false;
+		}
+
+		nxmpaudioctx.midiSamplesWritten = 0;
+		nxmpaudioctx.currentpos = 0;
+		bitrate = 0;
+		nxmpaudioctx.duration = 0;
+
+		fluid_player_play(nxmpaudioctx.fplayer);
+
+		fileloaded = true;
+		loadedfilename = filename.substr(filename.find_last_of("/")+1);
+		return true;
 	}
 	
 	nxmpaudioctx.pFormatCtx = avformat_alloc_context();
@@ -328,7 +405,11 @@ bool CAudioPlayer::LoadFile(std::string filename){
 void CAudioPlayer::Play(){
 	nxmpaudioctx.pause = false;
 	
-	threadCreate(&t0, AudrenAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
+	if(nxmpaudioctx.isMidi){
+		threadCreate(&t0, MidiAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
+	} else {
+		threadCreate(&t0, AudrenAudioThread, &nxmpaudioctx, NULL, 0x100000, 0x3B, -2);
+	}
 	threadStart(&t0);
 }
 
@@ -376,14 +457,17 @@ unsigned int CAudioPlayer::getBitRate(){
 }
 
 std::string CAudioPlayer::getCodec(){
+	if(nxmpaudioctx.isMidi) return "MIDI (fluidsynth)";
 	return nxmpaudioctx.audCodec->long_name;
 }
 
 unsigned int CAudioPlayer::getSampleRate(){
+	if(nxmpaudioctx.isMidi) return 48000;	
 	return nxmpaudioctx.audCtx->sample_rate;
 }
 
 std::string CAudioPlayer::getFormat(){
+	if(nxmpaudioctx.isMidi) return "Standard MIDI File";
 	return nxmpaudioctx.pFormatCtx->iformat->long_name;
 }
 
@@ -507,6 +591,69 @@ void AudrenAudioThread(void *arg) {
 	av_frame_free(&aframe_filt);
 	ctx->running = false;	
 	
+}
+
+void MidiAudioThread(void *arg) {
+
+	nxmpaudioctx_struct *ctx = (nxmpaudioctx_struct *)arg;
+	ctx->running = true;
+
+	const int frames = m_samples_per_frame; // AUDREN_SAMPLES_PER_FRAME_48KHZ
+	int16_t *midibuf = (int16_t *)malloc(frames * 2 * sizeof(int16_t)); // stereo interleaved
+
+	while (!ctx->exit) {
+
+		if (fluid_player_get_status(ctx->fplayer) == FLUID_PLAYER_DONE) {
+			break;
+		}
+		
+		if (ctx->seekabs != 0) {
+
+			int total_ticks = fluid_player_get_total_ticks(ctx->fplayer);
+			int target_tick = 0;
+			if (ctx->duration > 0) {
+				target_tick = (int)((double)total_ticks * ((double)(ctx->seekabs * 1000000) / (double)ctx->duration));
+			}
+			fluid_synth_all_sounds_off(ctx->fsynth, -1);
+			fluid_player_seek(ctx->fplayer, target_tick);
+			ctx->midiSamplesWritten = (long)((double)ctx->seekabs * 48000.0);
+			ctx->seekabs = 0;
+		}
+		
+		if (ctx->seek != 0) {
+			int seconds = ctx->currentpos/1000000 + ctx->seek;
+			if (seconds < 0) seconds = 0;
+			int total_ticks = fluid_player_get_total_ticks(ctx->fplayer);
+			int target_tick = 0;
+			if (ctx->duration > 0) {
+				target_tick = (int)((double)total_ticks * ((double)(seconds * 1000000) / (double)ctx->duration));
+			}
+			fluid_synth_all_sounds_off(ctx->fsynth, -1);
+			fluid_player_seek(ctx->fplayer, target_tick);
+			ctx->midiSamplesWritten = (long)((double)seconds * 48000.0);
+			ctx->seek = 0;
+		}
+
+		fluid_synth_write_s16(ctx->fsynth, frames, midibuf, 0, 2, midibuf, 1, 2);
+		
+		if (ctx->pmvis->VisEnabled()) {
+			ctx->pmvis->AddInt16(midibuf, frames * 2);
+		}
+
+		write_audio(midibuf, frames * 2 * sizeof(int16_t));
+
+		ctx->midiSamplesWritten += frames;
+		ctx->currentpos = (long)(1000000.0 * (double)ctx->midiSamplesWritten / 48000.0);
+
+		audrvUpdate(&m_driver);
+	
+		while (ctx->pause && !ctx->exit) {
+		svcSleepThread(1000);
+		}
+	}
+
+	free(midibuf);
+	ctx->running = false;
 }
 
 void write_audren(AVFrame *frame, CProjectMVis * pmvis){

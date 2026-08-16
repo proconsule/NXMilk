@@ -13,6 +13,7 @@ typedef struct{
 	std::string milktexturespath = "/switch/NXMilk/presets/Textures/";
 	int interfacehidesec = 10;
 	bool usebuiltinpreset = true;
+	std::string soundfontpath = "/switch/NXMilk/soundfonts/default.sf2";
 	
 	
 }audioplayerconfig_struct;

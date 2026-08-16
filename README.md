@@ -88,9 +88,11 @@ Features
 - SPC       Super Nintendo/Super Famicom
 - VGM/VGZ   Sega Master System/Mark III, Sega Genesis/Mega Drive,BBC Micro
 
-### Supported Files using libmodplug (https://github.com/Konstanty/libmodplug)
-- Nearly all the formats supported by libopenmpt
-- MIDI files (for better result you must use GUS patch file https://www.chocolate-doom.org/wiki/index.php/GUS) 
+### MIDI Files using libfluidsynth (https://www.fluidsynth.org/)
+
+- Standard MIDI Files (.mid / .midi / .rmi / .kar)
+- Real SoundFont (.sf2) synthesis instead of a tracker-style renderer, for much better instrument quality
+- Default soundfont path: `/switch/NXMilk/soundfonts/default.sf2` (configurable, see `soundfontpath` below)
 
 ### Supported Disck Images
 
@@ -120,7 +122,7 @@ Installation
 - Copy NXMilk.nro in a subfolder eg. /switch/NXMilk/
 - (OPTIONAL) Copy milk files in /switch/NXMilk/presets/milk/
 - (OPTIONAL) Copy texture files in /switch/NXMilk/presets/Textures/
-- (OPTIONAL for better MIDI playback ) Copy timidity.conf and GUS patch files in /switch/NXMilk/timidity/
+- (OPTIONAL for MIDI playback) Copy a SoundFont (.sf2) file to /switch/NXMilk/soundfonts/default.sf2 (or set a custom path with `soundfontpath` in NXMilk.ini)
 
 
 Edit Config file NXMilk.ini
@@ -204,7 +206,7 @@ Libraries used in this project
 - projectM https://github.com/projectM-visualizer/projectm
 - libopenmpt https://lib.openmpt.org/libopenmpt/
 - libgme https://github.com/mcfiredrill/libgme
-- libmodplug https://github.com/Konstanty/libmodplug
+- libfluidsynth https://www.fluidsynth.org/ (used for MIDI playback instead of avcodec)
 - Many code parts are taken form NXMP https://github.com/proconsule/nxmp
 
 Thanks to

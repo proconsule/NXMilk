@@ -53,7 +53,7 @@ std::vector<std::string> audioextensions = {".mp3",".flac",".ogg",".wav",".m4a",
 
 std::vector<std::string> libopenmptext = {"669",".amf",".ams",".dbm",".digi",".dmf",".dsm",".far",".gdm",".ice",".imf",".it",".j2b",".m15",".mdl",".med",".mmcmp",".mms",".mo3",".mod",".mptm",".mt2",".mtm",".nst",".okt",".plm",".ppm",".psm",".pt36",".ptm",".s3m",".sfx",".sfx2",".st26",".stk",".stm",".ult",".umx",".wow",".xm",".xpk"};
 std::vector<std::string> libgmefilext = {".ay",".gbs",".gym",".hes",".kss",".nfs",".nfse",".sap",".spc",".vgm",".vgz"};
-std::vector<std::string> libmodplugext = {"669",".abc",".amf",".ams",".dbm",".dmf",".dsm",".far",".it",".mdl",".med",".mid",".mod",".mt2",".mtm",".okt",".psm",".ptm",".s3m",".stm",".ult",".umx",".xm",".itgz",".itr",".itz",".mdgz",".mdr",".mdz",".s3gz",".s3r",".s3z",".xmgz",".xmr",".xmz"};
+std::vector<std::string> libfluidsynthext = {".mid",".midi",".rmi",".kar"};
 
 
 
@@ -126,7 +126,7 @@ main(int argc, const char* const* argv) {
 	std::vector<std::string> trackermerge;
 	
 	std::set_union(libopenmptext.cbegin(), libopenmptext.cend(),
-                   libmodplugext.cbegin(), libmodplugext.cend(),
+                   libfluidsynthext.cbegin(), libfluidsynthext.cend(),
                    std::back_inserter(trackermerge));
 	
 	

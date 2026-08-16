@@ -243,7 +243,7 @@ USBMounter::USBMounter(){
 	Result rc;
     
 	
-	testusbdvd = new CUSBDVD();
+	testusbdvd = new CUSBDVD(true);
 
 	
 	rc = usbHsFsInitialize(0);
