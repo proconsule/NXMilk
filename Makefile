@@ -71,7 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -DIMGUI_IMPL_OPENGL
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=   -lusbdvd -lprojectM-4 -lprojectM-4-playlist `aarch64-none-elf-pkg-config --libs libavformat libavcodec libavutil libavfilter libswscale libpostproc` -lGLESv2 `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lglfw3 -ljansson -lusbhsfs -lntfs-3g -llwext4 -larchive -lssh2 -lsmb2 -lnfs  -lmbedtls -lmbedcrypto -lmbedx509 -lfluidsynth -lexpat -llzma -lzstd -llz4 -lbz2 -lc -lz -lnx
+LIBS	:=   -lusbdvd -lprojectM-4 -lprojectM-4-playlist `aarch64-none-elf-pkg-config --libs libavformat libavcodec libavutil libavfilter libswscale libpostproc` -lGLESv2 `sdl2-config --libs` `curl-config --libs` `freetype-config --libs` -lpng -lbz2 -lglad -lEGL -lglapi -ldrm_nouveau -ltinyxml2 -lturbojpeg -llua5.1 -lmbedcrypto -lmbedx509 -lmbedtls -lmbedcrypto -lmbedx509 -lmbedtls -lsqlite3 -lglfw3 -ljansson -lusbhsfsd -lntfs-3g -llwext4 -larchive -lssh2 -lsmb2 -lnfs  -lmbedtls -lmbedcrypto -lmbedx509 -lfluidsynth -lexpat -llzma -lzstd -llz4 -lbz2 -lc -lz -lnx
 
 
 #---------------------------------------------------------------------------------

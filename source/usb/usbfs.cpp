@@ -234,16 +234,12 @@ USBMounter::~USBMounter(){
     }
 #endif
 
-	if(testusbdvd != nullptr)delete testusbdvd;
-
 	usbHsFsExit();
 }
 
 USBMounter::USBMounter(){
 	Result rc;
     
-	
-	testusbdvd = new CUSBDVD(true);
 
 	
 	rc = usbHsFsInitialize(0);
@@ -262,7 +258,7 @@ USBMounter::USBMounter(){
 #ifdef USB_USE_CALLBACK_SYSTEM	
 	usbHsFsSetPopulateCallback(&usbMscPopulateFunc, this);
 #endif
-
+	
 }
 
 std::string USBMounter::getBasePath(){

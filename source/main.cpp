@@ -29,6 +29,7 @@
 #include "imgloader.h"
 
 #include "usbfs.h"
+#include "dvdfs.h"
 #include "iniParser.h"
 
 #define is_bit_set(val, bit_no) (((val) >> (bit_no)) & 1)
@@ -61,7 +62,7 @@ extern u32 __nx_applet_exit_mode;
 
 
 USBMounter *MyUSBMount = nullptr;
-
+DVDMounter *MyDVDMount = nullptr;
 
 
 
@@ -244,8 +245,32 @@ main(int argc, const char* const* argv) {
 						delete fsbrowser;
 						fsbrowser = nullptr;
 					}
+					if(MyDVDMount!= nullptr){
+						delete MyDVDMount;
+						MyDVDMount = nullptr;
+					}
+					if(MyUSBMount!= nullptr){
+						delete MyUSBMount;
+						MyUSBMount = nullptr;
+					}
+					
 					menuitem.state = MENU_STATE_HOME;
 				}
+				if(menuitem.state == MENU_STATE_USB){
+					if(MyUSBMount!= nullptr){
+						delete MyUSBMount;
+						MyUSBMount = nullptr;
+					}
+					menuitem.state = MENU_STATE_HOME;
+				}
+				if(menuitem.state == MENU_STATE_DVD){
+					if(MyDVDMount!= nullptr){
+						delete MyDVDMount;
+						MyDVDMount = nullptr;
+					}
+					menuitem.state = MENU_STATE_HOME;
+				}
+				
 			}
 		}
 		if(is_bit_set(event_ret,nxmpgfx::BUT_B)){
@@ -313,6 +338,8 @@ main(int argc, const char* const* argv) {
 				Windows::MainMenuWindow();
 			}else if(menuitem.state == MENU_STATE_USB){
 				Windows::USBWindow();
+			}else if(menuitem.state == MENU_STATE_DVD){
+				Windows::DVDWindow();
 			}else if(menuitem.state == MENU_STATE_NETWORKSEL){
 				Windows::NetworkWindow();
 			}
@@ -346,6 +373,7 @@ main(int argc, const char* const* argv) {
 	printf("Delete USB\r\n");
 	fflush(stdout);
 	if(MyUSBMount!=nullptr)delete MyUSBMount;
+	if(MyDVDMount!=nullptr)delete MyDVDMount;
 	printf("Delete IMGLOADER\r\n");
 	fflush(stdout);
 	delete imgloader;

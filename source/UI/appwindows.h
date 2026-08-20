@@ -24,6 +24,7 @@ enum MENU_STATES {
 	MENU_STATE_HOME,
     MENU_STATE_FILEBROWSER,
 	MENU_STATE_USB,
+	MENU_STATE_DVD,
 	MENU_STATE_NETWORKSEL,
 	MENU_STATE_EXIT,
 	MENU_STATE_GUILESS
@@ -87,6 +88,7 @@ inline void SetupWindow(void) {
 	void MainMenuWindow();
 	void HomeWindow();
 	void USBWindow();
+	void DVDWindow();
 	void NetworkWindow();
 	
 	void PlayerWindow();

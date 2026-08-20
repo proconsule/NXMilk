@@ -3,10 +3,12 @@
 #include <vector>
 #include <iomanip>
 #include "usbfs.h"
+#include "dvdfs.h"
 
 CFSBrowser * fsbrowser = nullptr;
 
 extern USBMounter *MyUSBMount;
+extern DVDMounter *MyDVDMount;
 
 extern bool USBDialog;
 
@@ -54,6 +56,97 @@ namespace Windows {
 		strftime(test1, 36, "%d/%m/%Y %H:%M:%S", timeStruct);
 		return std::string(test1);
 	}
+	
+	void DVDWindow(){
+		Windows::SetupMainWindow();
+		if (ImGui::Begin("DVD/BD Drive", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+			
+			
+			static int selected = -1;
+			if(MyDVDMount != nullptr){	
+				if(MyDVDMount->testusbdvd->usbdvd_ctx.drive.drive_found){
+					
+					unsigned int n = 0;
+					if (ImGui::Selectable("##DVDITEM", selected == n,0, ImVec2(1000, 60))){
+						//std::string mountpath = "acd0:/";
+						//if(MyUSBMount->testusbdvd != nullptr){
+							if(MyDVDMount->testusbdvd->usbdvd_ctx.fs.mounted){
+							std::string mountpath = MyDVDMount->testusbdvd->usbdvd_ctx.fs.mountpoint + std::string("/");
+							MyDVDMount->setBasePath(mountpath);
+							menuitem.state = MENU_STATE_FILEBROWSER;
+							fsbrowser = new CFSBrowser(mountpath,"USB Browser " + mountpath);
+							fsbrowser->DirList(mountpath,false,audioextensions);
+						}
+						//}
+					}
+					
+					
+					float currstartYpos = ImGui::GetCursorPosY();
+					ImGui::SameLine();
+					float myoptsbtX = ImGui::GetCursorPosX();
+					float myoptsbtY = ImGui::GetCursorPosY();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()-1000.f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()+10.0f);
+					ImGui::Image((void*)(intptr_t)imgloader->icons.DVDDrive_Icon.id, ImVec2(40,40));
+					ImGui::SameLine();
+					ImGui::SetCursorPosY(currstartYpos);
+					float currstartXpos = ImGui::GetCursorPosX();
+					std::string devname = Utility::trim(MyDVDMount->testusbdvd->usbdvd_ctx.drive.product_id)  + std::string(" -> ") + MyDVDMount->testusbdvd->usbdvd_ctx.fs.mountpoint;
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-60.0f);
+					ImGui::Text("%s",devname.c_str());
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-30.0f);
+					ImGui::SetCursorPosX(currstartXpos);
+					ImGui::Text("%s %s",MyDVDMount->testusbdvd->usbdvd_ctx.drive.disc_type,MyDVDMount->testusbdvd->usbdvd_ctx.fs.disc_fstype);
+					ImGui::SetCursorPosY(currstartYpos);
+					ImGui::SameLine();
+					
+					ImGui::SetCursorPosX(myoptsbtX);
+					ImGui::SetCursorPosY(myoptsbtY);
+					if(!MyDVDMount->testusbdvd->usbdvd_ctx.fs.mounted){
+						
+						if (ImGui::Selectable("##DVDMOUNT", selected == n,0, ImVec2(100, 60))){
+							MyDVDMount->testusbdvd->MountDisc();
+						}
+						ImGui::SameLine();
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX()-90.f);
+						double imgstartpos = ImGui::GetCursorPosX();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-35.f);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX()+5.0);
+						ImGui::Image((void*)(intptr_t)imgloader->icons.DVDMount_Icon.id, ImVec2(40,40));
+						ImGui::SameLine();
+						ImGui::SetCursorPosX(imgstartpos);
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0);
+						ImGui::Text("Mount");
+						ImGui::SameLine();
+					}
+					ImGui::SetCursorPosX(myoptsbtX+100);
+					ImGui::SetCursorPosY(myoptsbtY);
+					if (ImGui::Selectable("##DVDEJECT", selected == n,0, ImVec2(100, 60))){
+						MyDVDMount->testusbdvd->Eject();
+					}
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()-90.f);
+					double imgstartpos = ImGui::GetCursorPosX();
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()-35.f);
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX()+5.0);
+					ImGui::Image((void*)(intptr_t)imgloader->icons.DVDEject_Icon.id, ImVec2(40,40));
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(imgstartpos);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY()+5.0);
+					ImGui::Text("Eject");
+					
+					
+					
+				}
+				
+			}
+		
+		
+		
+		Windows::ExitMainWindow();
+		}
+	}
+	
 
 	void USBWindow() {
 		Windows::SetupMainWindow();
@@ -66,7 +159,7 @@ namespace Windows {
 			static int selected = -1;
 			if(MyUSBMount != nullptr){	
 				std::vector<usb_devices> thislist = MyUSBMount->mounted_devs;
-				
+				/*
 				if(MyUSBMount->testusbdvd->usbdvd_ctx.drive.drive_found){
 					
 					unsigned int n = 0;
@@ -141,6 +234,7 @@ namespace Windows {
 					
 					
 				}
+				*/
 				for (unsigned int n = 0; n < thislist.size(); n++){
 					std::string itemid = "##" + std::to_string(n);
 					if (ImGui::Selectable(itemid.c_str(), selected == n,0, ImVec2(0, 60))){
@@ -221,7 +315,7 @@ namespace Windows {
 				ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthStretch); 
 				
 				static int selected = -1;	
-				std::vector<std::string> menustrings = {"SD Card","USB","Network","Exit"};
+				std::vector<std::string> menustrings = {"SD Card","USB","DVD/BD","Network","Exit"};
 				for (unsigned int n = 0; n <  menustrings.size(); n++){
 					ImGui::TableNextRow();
 					std::string itemid = "##" + std::to_string(n);
@@ -238,9 +332,12 @@ namespace Windows {
 						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(50,50));
 					}
 					else if(n == 2){
-						ImGui::Image((void*)(intptr_t)imgloader->icons.NetworkTexture.id, ImVec2(50,50));
+						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(50,50));
 					}
 					else if(n == 3){
+						ImGui::Image((void*)(intptr_t)imgloader->icons.NetworkTexture.id, ImVec2(50,50));
+					}
+					else if(n == 4){
 						ImGui::Image((void*)(intptr_t)imgloader->icons.ExitTexture.id, ImVec2(50,50));
 					}
 					 
@@ -265,10 +362,19 @@ namespace Windows {
 							
 						}
 						if(n == 2){
+							if(MyDVDMount==nullptr){
+								MyDVDMount=new DVDMounter();
+							}
+							menuitem.state = MENU_STATE_DVD;
+							//fsbrowser = new CFSBrowser(MyUSBMount->getBasePath());
+							//fsbrowser->DirList(fsbrowser->getCurrentPath(),true,audioextensions);
+							
+						}
+						if(n == 3){
 							menuitem.state = MENU_STATE_NETWORKSEL;
 													
 						}
-						if(n == 3){
+						if(n == 4){
 							
 							menuitem.state = MENU_STATE_EXIT;
 							
