@@ -332,7 +332,7 @@ namespace Windows {
 						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(50,50));
 					}
 					else if(n == 2){
-						ImGui::Image((void*)(intptr_t)imgloader->icons.UsbTexture.id, ImVec2(50,50));
+						ImGui::Image((void*)(intptr_t)imgloader->icons.DVDDrive_Icon.id, ImVec2(50,50));
 					}
 					else if(n == 3){
 						ImGui::Image((void*)(intptr_t)imgloader->icons.NetworkTexture.id, ImVec2(50,50));
